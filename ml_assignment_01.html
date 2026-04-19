@@ -1,0 +1,967 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Hands-On Assignment: Patterns, Preprocessing, and First ML Models</title>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#f6f4ef;
+  --surface:#ffffff;
+  --surface-2:#f0ece4;
+  --text:#1f2933;
+  --muted:#5f6b76;
+  --border:#ddd6c9;
+  --nav:#17324d;
+  --nav-2:#24547a;
+  --blue:#2563eb;
+  --blue-soft:#eaf2ff;
+  --green:#2f855a;
+  --green-soft:#ebf8f0;
+  --orange:#c05621;
+  --orange-soft:#fff4e8;
+  --pink:#b83280;
+  --pink-soft:#fff0f7;
+  --gold:#b7791f;
+  --gold-soft:#fff8e1;
+  --shadow:0 10px 28px rgba(17,24,39,.08);
+  --radius:16px;
+  --radius-sm:10px;
+}
+html{scroll-behavior:smooth}
+body{
+  font-family:Segoe UI,system-ui,-apple-system,BlinkMacSystemFont,"Helvetica Neue",sans-serif;
+  background:var(--bg);
+  color:var(--text);
+  line-height:1.7;
+  font-size:16px;
+}
+a{color:var(--blue)}
+code{
+  font-family:Consolas,Monaco,"Courier New",monospace;
+  background:var(--surface-2);
+  padding:.12em .38em;
+  border-radius:6px;
+  font-size:.92em;
+}
+pre{
+  background:#162534;
+  color:#e7edf4;
+  border-radius:14px;
+  padding:1rem 1.1rem;
+  overflow:auto;
+  font-size:13.5px;
+  line-height:1.6;
+  margin:1rem 0 1.2rem;
+}
+pre code{
+  background:transparent;
+  padding:0;
+  color:inherit;
+}
+table{
+  width:100%;
+  border-collapse:collapse;
+  margin:1rem 0;
+  background:var(--surface);
+  border-radius:12px;
+  overflow:hidden;
+}
+th,td{
+  padding:.8rem .9rem;
+  border-bottom:1px solid var(--border);
+  text-align:left;
+  vertical-align:top;
+}
+th{
+  background:var(--surface-2);
+  font-size:.94rem;
+  font-weight:700;
+}
+tr:last-child td{border-bottom:none}
+ul,ol{padding-left:1.2rem;margin:.8rem 0 1rem}
+li{margin:.3rem 0}
+
+.nav{
+  position:sticky;
+  top:0;
+  z-index:50;
+  background:rgba(255,255,255,.95);
+  backdrop-filter:blur(8px);
+  border-bottom:1px solid var(--border);
+}
+.nav-inner{
+  max-width:1120px;
+  margin:0 auto;
+  padding:0 1rem;
+  display:flex;
+  align-items:center;
+  gap:.25rem;
+  overflow:auto;
+}
+.nav-brand{
+  color:var(--nav);
+  font-weight:800;
+  padding:1rem .9rem 1rem 0;
+  white-space:nowrap;
+}
+.nav a{
+  text-decoration:none;
+  color:var(--muted);
+  font-size:.9rem;
+  white-space:nowrap;
+  padding:1rem .8rem;
+  border-bottom:2px solid transparent;
+}
+.nav a:hover{color:var(--blue);border-bottom-color:var(--blue)}
+
+.page{
+  max-width:1120px;
+  margin:0 auto;
+  padding:1.5rem 1.2rem 4rem;
+}
+.hero{
+  background:linear-gradient(135deg,var(--nav) 0%,var(--nav-2) 52%,#2f855a 100%);
+  color:#fff;
+  border-radius:22px;
+  padding:2.6rem 2rem;
+  box-shadow:var(--shadow);
+  margin-bottom:1.4rem;
+}
+.hero h1{
+  font-size:2.3rem;
+  line-height:1.15;
+  margin-bottom:.8rem;
+}
+.hero p{
+  max-width:860px;
+  opacity:.94;
+  margin-bottom:1rem;
+}
+.badge-row{display:flex;gap:.55rem;flex-wrap:wrap}
+.badge{
+  display:inline-block;
+  border:1px solid rgba(255,255,255,.28);
+  background:rgba(255,255,255,.12);
+  color:#fff;
+  border-radius:999px;
+  padding:.28rem .8rem;
+  font-size:.8rem;
+  font-weight:700;
+}
+
+.grid{
+  display:grid;
+  grid-template-columns:1.15fr .85fr;
+  gap:1.2rem;
+  margin-bottom:1.2rem;
+}
+.card,.section{
+  background:var(--surface);
+  border-radius:var(--radius);
+  box-shadow:var(--shadow);
+  border:1px solid rgba(221,214,201,.65);
+}
+.card{padding:1.25rem 1.3rem}
+.section{
+  padding:1.6rem 1.4rem;
+  margin-top:1.15rem;
+}
+.section-head{
+  display:flex;
+  align-items:center;
+  gap:.8rem;
+  margin-bottom:1rem;
+  padding-bottom:.8rem;
+  border-bottom:1px solid var(--border);
+}
+.num{
+  width:36px;
+  height:36px;
+  border-radius:50%;
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  color:#fff;
+  font-weight:800;
+  background:var(--blue);
+  flex-shrink:0;
+}
+.section h2{
+  font-size:1.45rem;
+  line-height:1.25;
+}
+.section h3{
+  font-size:1.08rem;
+  margin:1.1rem 0 .45rem;
+  color:var(--nav);
+}
+.section p{margin:.55rem 0}
+.muted{color:var(--muted)}
+
+.callout{
+  border-left:4px solid var(--blue);
+  background:var(--blue-soft);
+  border-radius:0 12px 12px 0;
+  padding:.9rem 1rem;
+  margin:1rem 0;
+}
+.callout.green{border-color:var(--green);background:var(--green-soft)}
+.callout.orange{border-color:var(--orange);background:var(--orange-soft)}
+.callout.pink{border-color:var(--pink);background:var(--pink-soft)}
+.callout.gold{border-color:var(--gold);background:var(--gold-soft)}
+
+.two-col{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:1rem;
+}
+.three-col{
+  display:grid;
+  grid-template-columns:repeat(3,1fr);
+  gap:1rem;
+}
+.mini{
+  border:1px solid var(--border);
+  border-radius:12px;
+  padding:1rem;
+  background:#fff;
+}
+.mini h4{
+  margin-bottom:.45rem;
+  color:var(--nav);
+}
+.task{
+  border:1px dashed #b9c5d1;
+  border-radius:12px;
+  padding:1rem;
+  margin:1rem 0;
+  background:#fbfdff;
+}
+.task strong{
+  display:block;
+  margin-bottom:.4rem;
+  color:var(--nav);
+}
+.checkpoint{
+  background:#fffdf8;
+  border:1px solid #f0d8a8;
+  border-radius:12px;
+  padding:1rem;
+  margin:1rem 0;
+}
+.deliverable{
+  background:#f8fafb;
+  border:1px solid var(--border);
+  border-radius:12px;
+  padding:1rem;
+  margin:1rem 0;
+}
+.path{
+  font-family:Consolas,Monaco,"Courier New",monospace;
+  font-size:.9rem;
+  background:#f4f1ea;
+  border-radius:8px;
+  padding:.45rem .65rem;
+  display:block;
+  margin:.45rem 0;
+  word-break:break-word;
+}
+.rubric td:first-child,.rubric th:first-child{width:28%}
+
+@media (max-width:900px){
+  .grid,.two-col,.three-col{grid-template-columns:1fr}
+  .hero h1{font-size:1.8rem}
+}
+</style>
+</head>
+<body>
+
+<nav class="nav">
+  <div class="nav-inner">
+    <div class="nav-brand">ML Assignment</div>
+    <a href="#overview">Overview</a>
+    <a href="#setup">Colab Setup</a>
+    <a href="#patterns">Pattern Warm-Up</a>
+    <a href="#prep">Preprocessing</a>
+    <a href="#slr">SLR</a>
+    <a href="#mlr">MLR</a>
+    <a href="#logistic">Logistic</a>
+    <a href="#poly">Polynomial</a>
+    <a href="#compare">Compare</a>
+    <a href="#submit">Deliverables</a>
+  </div>
+</nav>
+
+<div class="page">
+  <header class="hero" id="overview">
+    <h1>Hands-On Assignment: Patterns, Data Preprocessing, and Your First Machine Learning Models</h1>
+    <p>This assignment turns the ideas from your <strong>Data Preprocessing</strong> and <strong>Simple Linear Regression</strong> lessons into a guided lab. You will work in <strong>Google Colab</strong>, write the code yourself, inspect data using <code>iloc</code>, and build four different scikit-learn model workflows: <strong>Simple Linear Regression</strong>, <strong>Multiple Linear Regression</strong>, <strong>Logistic Regression</strong>, and <strong>Polynomial Regression</strong>.</p>
+    <div class="badge-row">
+      <span class="badge">Google Colab</span>
+      <span class="badge">pandas</span>
+      <span class="badge">scikit-learn</span>
+      <span class="badge">Visualization</span>
+      <span class="badge">Pattern Hunting</span>
+    </div>
+  </header>
+
+  <div class="grid">
+    <div class="card">
+      <h3>What you are expected to do</h3>
+      <ol>
+        <li>Recognize patterns in sequences, tables, and scatter plots.</li>
+        <li>Load datasets into Colab and inspect them with <code>shape</code>, <code>head()</code>, <code>info()</code>, and <code>iloc</code>.</li>
+        <li>Handle missing values, encode categorical data, split train/test sets, and scale numerical features when required.</li>
+        <li>Train and evaluate:
+          <br><code>LinearRegression</code> for salary prediction,
+          <br><code>LinearRegression</code> for startup profit prediction with multiple inputs,
+          <br><code>LogisticRegression</code> for classification,
+          <br><code>PolynomialFeatures + LinearRegression</code> for curved relationships.
+        </li>
+        <li>Explain why each model is appropriate for its dataset.</li>
+      </ol>
+    </div>
+    <div class="card">
+      <h3>Datasets you will use</h3>
+      <p class="muted">These files already exist in this folder. Use them in Colab by uploading them manually or mounting Drive.</p>
+      <span class="path">Codes/Part 1 - Data Preprocessing/Section 2 -------------------- Part 1 - Data Preprocessing --------------------/Python/Data.csv</span>
+      <span class="path">Codes/Part 2 - Regression/Section 4 - Simple Linear Regression/Python/Salary_Data.csv</span>
+      <span class="path">Codes/Part 2 - Regression/Section 5 - Multiple Linear Regression/Python/50_Startups.csv</span>
+      <span class="path">Codes/Part 3 - Classification/Section 14 - Logistic Regression/Python/Social_Network_Ads.csv</span>
+      <span class="path">Codes/Part 2 - Regression/Section 6 - Polynomial Regression/Python/Position_Salaries.csv</span>
+    </div>
+  </div>
+
+  <section class="section" id="setup">
+    <div class="section-head">
+      <div class="num">0</div>
+      <h2>Before You Start in Colab</h2>
+    </div>
+    <p>Create a new Colab notebook named <code>ml_hands_on_assignment.ipynb</code>. Use section headings in Markdown cells so your notebook is organized and readable.</p>
+
+    <h3>Starter import cell</h3>
+    <pre><code class="language-python">import numpy as np
+import pandas as pd
+import matplotlib.pyplot as plt
+import seaborn as sns
+
+from sklearn.impute import SimpleImputer
+from sklearn.compose import ColumnTransformer
+from sklearn.preprocessing import OneHotEncoder, LabelEncoder, StandardScaler, PolynomialFeatures
+from sklearn.model_selection import train_test_split
+from sklearn.linear_model import LinearRegression, LogisticRegression
+from sklearn.metrics import confusion_matrix, accuracy_score, classification_report
+
+plt.style.use('seaborn-v0_8-whitegrid')</code></pre>
+
+    <div class="task">
+      <strong>Task 0.1</strong>
+      Upload all five CSV files to Colab. In a Markdown cell, write one sentence for each file explaining what kind of problem it looks like:
+      <ul>
+        <li>Regression or classification?</li>
+        <li>One feature or multiple features?</li>
+        <li>Straight-line pattern or possibly curved pattern?</li>
+      </ul>
+    </div>
+  </section>
+
+  <section class="section" id="patterns">
+    <div class="section-head">
+      <div class="num">1</div>
+      <h2>Pattern Warm-Up: Train Your Eyes Before Training Models</h2>
+    </div>
+    <p>This part comes from the “Desperately Seeking Patterns” curriculum. Do not skip it. Machine learning starts with pattern recognition, not with libraries.</p>
+
+    <h3>1.1 Number sequence exercises</h3>
+    <table>
+      <thead>
+        <tr><th>Sequence</th><th>Your next value</th><th>Your rule in one sentence</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>2, 4, 6, 8, ___</td><td></td><td></td></tr>
+        <tr><td>1, 3, 9, 27, ___</td><td></td><td></td></tr>
+        <tr><td>1, 1, 2, 3, 5, 8, ___</td><td></td><td></td></tr>
+        <tr><td>100, 50, 25, 12.5, ___</td><td></td><td></td></tr>
+        <tr><td>0, 1, 4, 9, 16, ___</td><td></td><td></td></tr>
+      </tbody>
+    </table>
+
+    <div class="task">
+      <strong>Task 1.1</strong>
+      In Colab, recreate the sequence plotting exercise from class. Plot each sequence using <code>matplotlib</code> and add a title that names the hidden rule.
+    </div>
+
+    <h3>1.2 Hidden formulas in tables</h3>
+    <p>Look for a rule that connects <code>x1</code>, <code>x2</code>, and <code>y</code>.</p>
+
+    <div class="two-col">
+      <div class="mini">
+        <h4>Table A</h4>
+        <table>
+          <thead><tr><th>x1</th><th>x2</th><th>y</th></tr></thead>
+          <tbody>
+            <tr><td>3</td><td>1</td><td>7</td></tr>
+            <tr><td>2</td><td>4</td><td>8</td></tr>
+            <tr><td>5</td><td>0</td><td>10</td></tr>
+            <tr><td>1</td><td>3</td><td>5</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="mini">
+        <h4>Table B</h4>
+        <table>
+          <thead><tr><th>x1</th><th>x2</th><th>y</th></tr></thead>
+          <tbody>
+            <tr><td>2</td><td>3</td><td>11</td></tr>
+            <tr><td>1</td><td>1</td><td>5</td></tr>
+            <tr><td>4</td><td>2</td><td>14</td></tr>
+            <tr><td>0</td><td>5</td><td>13</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="task">
+      <strong>Task 1.2</strong>
+      For each table, guess a formula first. Then write a Python function in Colab that checks whether your formula works for every row. Use the pattern-checking idea shown in class.
+    </div>
+
+    <h3>1.3 Scatter plot interpretation</h3>
+    <p>In a Markdown cell, define these in your own words: <strong>strong positive</strong>, <strong>weak positive</strong>, <strong>negative relationship</strong>, and <strong>no relationship</strong>.</p>
+    <div class="task">
+      <strong>Task 1.3</strong>
+      Build four small scatter plots using synthetic data, like the classroom demo. Under each plot, write the relationship type and explain what your eyes are noticing.
+    </div>
+
+    <div class="checkpoint">
+      <strong>Checkpoint question</strong>
+      Before moving on, answer this in Colab: <em>How is “finding a formula in a table” similar to “fitting a machine learning model”?</em>
+    </div>
+  </section>
+
+  <section class="section" id="prep">
+    <div class="section-head">
+      <div class="num">2</div>
+      <h2>Data Preprocessing Lab</h2>
+    </div>
+    <p>Use <code>Data.csv</code> from the preprocessing lesson. Your goal is to convert raw data into model-ready inputs while showing that you understand every transformation.</p>
+
+    <h3>2.1 Load and inspect the dataset</h3>
+    <pre><code class="language-python">dataset = pd.read_csv('Data.csv')
+
+# TODO: inspect the data
+# Use:
+# 1. dataset.head()
+# 2. dataset.shape
+# 3. dataset.info()
+# 4. dataset.isnull().sum()</code></pre>
+
+    <div class="task">
+      <strong>Task 2.1</strong>
+      Write 3 observations about the dataset:
+      <ul>
+        <li>Which columns are numerical?</li>
+        <li>Which column is categorical?</li>
+        <li>Where are the missing values?</li>
+      </ul>
+    </div>
+
+    <h3>2.2 <code>iloc</code> drill set</h3>
+    <p>You have been taught <code>iloc</code>. This part is compulsory. Run each slice and explain what it returns: rows, columns, shape, and whether the result is a Series or DataFrame/array.</p>
+    <table>
+      <thead>
+        <tr><th>Exercise</th><th>Write code in Colab</th><th>What should you describe?</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>1</td><td><code>dataset.iloc[:, :-1]</code></td><td>All feature columns</td></tr>
+        <tr><td>2</td><td><code>dataset.iloc[:, -1]</code></td><td>Target column only</td></tr>
+        <tr><td>3</td><td><code>dataset.iloc[0:3, :]</code></td><td>First three rows</td></tr>
+        <tr><td>4</td><td><code>dataset.iloc[:, 0]</code></td><td>Country column only</td></tr>
+        <tr><td>5</td><td><code>dataset.iloc[:, 1:3]</code></td><td>Age and Salary only</td></tr>
+        <tr><td>6</td><td><code>dataset.iloc[4, :]</code></td><td>One complete row</td></tr>
+        <tr><td>7</td><td><code>dataset.iloc[[1, 5, 8], [0, 2]]</code></td><td>Selected rows and selected columns</td></tr>
+        <tr><td>8</td><td><code>dataset.iloc[-3:, :-1]</code></td><td>Last three rows of features</td></tr>
+      </tbody>
+    </table>
+
+    <div class="callout orange">
+      <strong>Important:</strong> Do not just run the slices. For each one, write a one-line interpretation in plain English. That interpretation matters as much as the code.
+    </div>
+
+    <h3>2.3 Build <code>X</code> and <code>y</code></h3>
+    <pre><code class="language-python">X = dataset.iloc[:, :-1].values
+y = dataset.iloc[:, -1].values
+
+print(X[:5])
+print(y[:5])</code></pre>
+
+    <div class="task">
+      <strong>Task 2.3</strong>
+      Explain why the target column should not be included inside <code>X</code>.
+    </div>
+
+    <h3>2.4 Handle missing values</h3>
+    <pre><code class="language-python">imputer = SimpleImputer(missing_values=np.nan, strategy='mean')
+
+# TODO:
+# 1. fit the imputer on the Age and Salary columns
+# 2. transform those columns
+# 3. place the transformed result back into X</code></pre>
+
+    <div class="task">
+      <strong>Task 2.4</strong>
+      After imputation, display the rows that previously contained missing values and show the filled values. Then answer:
+      <ul>
+        <li>Why is mean imputation reasonable here?</li>
+        <li>What could go wrong if too many values were missing?</li>
+      </ul>
+    </div>
+
+    <h3>2.5 Encode categorical data</h3>
+    <pre><code class="language-python">ct = ColumnTransformer(
+    transformers=[('encoder', OneHotEncoder(), [0])],
+    remainder='passthrough'
+)
+
+# TODO: transform X using the column transformer
+
+le = LabelEncoder()
+# TODO: encode y</code></pre>
+
+    <div class="task">
+      <strong>Task 2.5</strong>
+      In a Markdown cell, answer:
+      <ul>
+        <li>Why is using <code>0, 1, 2</code> directly for countries a bad idea?</li>
+        <li>Why is label encoding acceptable for the target here?</li>
+      </ul>
+    </div>
+
+    <h3>2.6 Split and scale</h3>
+    <pre><code class="language-python">X_train, X_test, y_train, y_test = train_test_split(
+    X, y, test_size=0.2, random_state=1
+)
+
+sc = StandardScaler()
+
+# TODO:
+# fit the scaler on X_train
+# transform X_train
+# transform X_test</code></pre>
+
+    <div class="task">
+      <strong>Task 2.6</strong>
+      Explain the phrase <strong>fit on train, transform both</strong>. Also define <strong>data leakage</strong> in your own words.
+    </div>
+  </section>
+
+  <section class="section" id="slr">
+    <div class="section-head">
+      <div class="num">3</div>
+      <h2>Model Lab A: Simple Linear Regression with <code>Salary_Data.csv</code></h2>
+    </div>
+    <p>This dataset matches the idea taught in the SLR tutorial: one input feature, one numerical output, and a roughly straight-line relationship.</p>
+
+    <h3>3.1 Inspect the dataset with <code>iloc</code></h3>
+    <pre><code class="language-python">dataset = pd.read_csv('Salary_Data.csv')
+
+# TODO:
+# dataset.head()
+# dataset.shape
+# X = dataset.iloc[:, :-1].values
+# y = dataset.iloc[:, -1].values</code></pre>
+
+    <div class="task">
+      <strong>Task 3.1</strong>
+      Answer these:
+      <ul>
+        <li>What is the independent variable?</li>
+        <li>What is the dependent variable?</li>
+        <li>Why is this called <em>simple</em> linear regression?</li>
+      </ul>
+    </div>
+
+    <h3>3.2 Plot first, model second</h3>
+    <pre><code class="language-python">plt.figure(figsize=(7,5))
+plt.scatter(X, y, color='teal')
+plt.xlabel('Years of Experience')
+plt.ylabel('Salary')
+plt.title('Experience vs Salary')
+plt.show()</code></pre>
+
+    <div class="task">
+      <strong>Task 3.2</strong>
+      Write 2-3 lines describing the pattern you see. Is the relationship positive, negative, or absent? Is it tight or noisy?
+    </div>
+
+    <h3>3.3 Train the model</h3>
+    <pre><code class="language-python">X_train, X_test, y_train, y_test = train_test_split(
+    X, y, test_size=0.2, random_state=0
+)
+
+regressor = LinearRegression()
+
+# TODO:
+# 1. fit the model
+# 2. predict on X_test
+# 3. print predictions beside actual values</code></pre>
+
+    <h3>3.4 Visualize the regression line</h3>
+    <pre><code class="language-python">plt.figure(figsize=(7,5))
+plt.scatter(X_train, y_train, color='tomato')
+
+# TODO:
+# plot regressor.predict(X_train) as the fitted line
+
+plt.title('Salary vs Experience (Training set)')
+plt.xlabel('Years of Experience')
+plt.ylabel('Salary')
+plt.show()</code></pre>
+
+    <div class="task">
+      <strong>Task 3.3</strong>
+      Predict the salary for a person with <code>6.5</code> years of experience. Then explain whether this is interpolation or extrapolation.
+    </div>
+
+    <div class="checkpoint">
+      <strong>Reflection</strong>
+      In one paragraph, explain what the line is doing. Avoid the phrase “it just fits the data.” Talk about trend, prediction, and error.
+    </div>
+  </section>
+
+  <section class="section" id="mlr">
+    <div class="section-head">
+      <div class="num">4</div>
+      <h2>Model Lab B: Multiple Linear Regression with <code>50_Startups.csv</code></h2>
+    </div>
+    <p>This dataset moves beyond simple linear regression. Now profit may depend on more than one input feature at the same time, such as R&amp;D spend, administration spend, marketing spend, and state.</p>
+
+    <h3>4.1 Inspect the dataset and identify useful columns</h3>
+    <pre><code class="language-python">dataset = pd.read_csv('50_Startups.csv')
+
+# TODO:
+# 1. inspect the first few rows
+# 2. check shape and info
+# 3. use iloc to split features and target</code></pre>
+
+    <div class="task">
+      <strong>Task 4.1</strong>
+      Use <code>iloc</code> to write code for:
+      <ul>
+        <li>all feature columns</li>
+        <li>the target column only</li>
+        <li>the first five rows and only the numerical columns</li>
+      </ul>
+      Then answer: which columns are numerical and which column is categorical?
+    </div>
+
+    <h3>4.2 Prepare the data</h3>
+    <p>The <code>State</code> column is categorical, so you must encode it before training the model.</p>
+    <pre><code class="language-python">X = dataset.iloc[:, :-1].values
+y = dataset.iloc[:, -1].values
+
+ct = ColumnTransformer(
+    transformers=[('encoder', OneHotEncoder(), [3])],
+    remainder='passthrough'
+)
+
+# TODO:
+# 1. transform X
+# 2. split into training and test sets</code></pre>
+
+    <div class="task">
+      <strong>Task 4.2</strong>
+      Explain why this problem is called <strong>multiple</strong> linear regression even though we still use <code>LinearRegression()</code>.
+    </div>
+
+    <h3>4.3 Train and predict</h3>
+    <pre><code class="language-python">regressor = LinearRegression()
+
+# TODO:
+# 1. fit on X_train and y_train
+# 2. predict on X_test
+# 3. print predicted profit beside actual profit</code></pre>
+
+    <h3>4.4 Interpret the model</h3>
+    <div class="task">
+      <strong>Task 4.3</strong>
+      Answer all of the following:
+      <ul>
+        <li>What is the target variable?</li>
+        <li>How is this different from simple linear regression?</li>
+        <li>Why can a model still be called linear even when it has many input features?</li>
+        <li>Do all input columns necessarily matter equally? Explain.</li>
+      </ul>
+    </div>
+
+    <div class="checkpoint">
+      <strong>Reflection</strong>
+      Write the general idea of the model in words:
+      <br><code>y = b0 + b1x1 + b2x2 + b3x3 + ...</code>
+      <br>Explain what each weight is doing.
+    </div>
+  </section>
+
+  <section class="section" id="logistic">
+    <div class="section-head">
+      <div class="num">5</div>
+      <h2>Model Lab C: Logistic Regression with <code>Social_Network_Ads.csv</code></h2>
+    </div>
+    <p>Now the target is not a continuous number. It is a class label: whether a user purchased or not. This is why we switch from linear regression to logistic regression.</p>
+
+    <h3>5.1 Select the correct columns</h3>
+    <p>This file contains extra columns. You must choose the useful ones intentionally.</p>
+    <pre><code class="language-python">dataset = pd.read_csv('Social_Network_Ads.csv')
+
+# TODO:
+# 1. inspect the first few rows
+# 2. use iloc to select Age and EstimatedSalary as features
+# 3. use iloc to select Purchased as target</code></pre>
+
+    <div class="task">
+      <strong>Task 5.1</strong>
+      Use <code>iloc</code> and write the exact code for:
+      <ul>
+        <li>All rows, columns 2 and 3 only</li>
+        <li>All rows, last column only</li>
+        <li>Rows 10 to 20, Age and Purchased only</li>
+      </ul>
+    </div>
+
+    <h3>5.2 Train/test split and scaling</h3>
+    <pre><code class="language-python">X_train, X_test, y_train, y_test = train_test_split(
+    X, y, test_size=0.25, random_state=0
+)
+
+sc = StandardScaler()
+
+# TODO:
+# fit and transform X_train
+# transform X_test</code></pre>
+
+    <div class="callout green">
+      <strong>Why scaling matters here:</strong> Logistic regression works better when numerical features live on comparable scales. Age and salary do not naturally live on the same scale.
+    </div>
+
+    <h3>5.3 Train the classifier</h3>
+    <pre><code class="language-python">classifier = LogisticRegression(random_state=0)
+
+# TODO:
+# fit the classifier
+# make predictions on X_test</code></pre>
+
+    <h3>5.4 Evaluate the classifier</h3>
+    <pre><code class="language-python">cm = confusion_matrix(y_test, y_pred)
+print(cm)
+print('Accuracy:', accuracy_score(y_test, y_pred))
+print(classification_report(y_test, y_pred))</code></pre>
+
+    <div class="task">
+      <strong>Task 5.2</strong>
+      Answer these:
+      <ul>
+        <li>What does each cell of the confusion matrix mean?</li>
+        <li>Why is accuracy useful here, but still not the whole story?</li>
+        <li>What kind of output does logistic regression produce before the final class label?</li>
+      </ul>
+    </div>
+
+    <h3>5.5 Visual challenge</h3>
+    <div class="task">
+      <strong>Task 5.3</strong>
+      Create a scatter plot of the two features and color the points by the class label. Then write 3 lines on whether the classes look reasonably separable.
+    </div>
+  </section>
+
+  <section class="section" id="poly">
+    <div class="section-head">
+      <div class="num">6</div>
+      <h2>Model Lab D: Polynomial Regression with <code>Position_Salaries.csv</code></h2>
+    </div>
+    <p>This dataset is important because it shows a case where a straight line is too simple. The relationship curves upward, so we engineer polynomial features and still use linear regression on the transformed inputs.</p>
+
+    <h3>6.1 Load and inspect</h3>
+    <pre><code class="language-python">dataset = pd.read_csv('Position_Salaries.csv')
+
+# TODO:
+# inspect the dataset
+# choose the correct feature column and target column using iloc</code></pre>
+
+    <div class="task">
+      <strong>Task 6.1</strong>
+      Answer:
+      <ul>
+        <li>Which column is just a label and should not be used as a feature?</li>
+        <li>Which column should be used as <code>X</code>?</li>
+        <li>Why must <code>X</code> remain a 2D array?</li>
+      </ul>
+    </div>
+
+    <h3>6.2 Fit a simple linear regression baseline</h3>
+    <pre><code class="language-python">lin_reg = LinearRegression()
+
+# TODO:
+# fit linear regression on X and y</code></pre>
+
+    <h3>6.3 Create polynomial features and fit again</h3>
+    <pre><code class="language-python">poly_reg = PolynomialFeatures(degree=4)
+
+# TODO:
+# create X_poly
+# fit a second LinearRegression model on X_poly and y</code></pre>
+
+    <h3>6.4 Compare the two fits visually</h3>
+    <pre><code class="language-python">plt.figure(figsize=(7,5))
+plt.scatter(X, y, color='crimson')
+
+# TODO:
+# plot the simple linear regression line
+# plot the polynomial regression curve
+
+plt.xlabel('Level')
+plt.ylabel('Salary')
+plt.title('Truth vs Linear vs Polynomial')
+plt.show()</code></pre>
+
+    <div class="task">
+      <strong>Task 6.2</strong>
+      Predict the salary for level <code>6.5</code> using:
+      <ul>
+        <li>simple linear regression</li>
+        <li>polynomial regression</li>
+      </ul>
+      Then explain which one seems more believable and why.
+    </div>
+
+    <div class="checkpoint">
+      <strong>Important idea</strong>
+      Polynomial regression is still built from <code>LinearRegression</code>. What changed is not the core estimator, but the features you fed into it.
+    </div>
+  </section>
+
+  <section class="section" id="compare">
+    <div class="section-head">
+      <div class="num">7</div>
+      <h2>Explain the Difference: SLR vs MLR vs Logistic Regression vs Polynomial Regression</h2>
+    </div>
+    <p>This section is compulsory. You must explain the differences in words, not only in code.</p>
+
+    <table>
+      <thead>
+        <tr>
+          <th>Model</th>
+          <th>Target type</th>
+          <th>Shape learned</th>
+          <th>Typical output</th>
+          <th>Dataset used here</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Simple Linear Regression</td>
+          <td>Continuous number</td>
+          <td>Straight line</td>
+          <td>A predicted numerical value</td>
+          <td><code>Salary_Data.csv</code></td>
+        </tr>
+        <tr>
+          <td>Multiple Linear Regression</td>
+          <td>Continuous number</td>
+          <td>Linear combination of multiple features</td>
+          <td>A predicted numerical value</td>
+          <td><code>50_Startups.csv</code></td>
+        </tr>
+        <tr>
+          <td>Logistic Regression</td>
+          <td>Class label</td>
+          <td>Decision boundary for classes</td>
+          <td>Probability, then class prediction</td>
+          <td><code>Social_Network_Ads.csv</code></td>
+        </tr>
+        <tr>
+          <td>Polynomial Regression</td>
+          <td>Continuous number</td>
+          <td>Curve</td>
+          <td>A predicted numerical value</td>
+          <td><code>Position_Salaries.csv</code></td>
+        </tr>
+      </tbody>
+    </table>
+
+    <div class="task">
+      <strong>Task 7.1</strong>
+      In your own words, answer all five:
+      <ol>
+        <li>Why can’t we use simple linear regression for the purchase prediction task?</li>
+        <li>How is multiple linear regression different from simple linear regression?</li>
+        <li>Why does polynomial regression perform better than a straight line on the salary-by-level dataset?</li>
+        <li>Why are both SLR and polynomial regression still called regression?</li>
+        <li>Why is logistic regression called “regression” even though it is used for classification?</li>
+      </ol>
+    </div>
+
+    <div class="callout pink">
+      <strong>A useful mental model:</strong> SLR asks, “What straight-line trend predicts a number from one feature?” MLR asks, “How do several features combine to predict one number?” Logistic regression asks, “What boundary separates two classes?” Polynomial regression asks, “Can I bend the input space so a linear model can capture a curve?”
+    </div>
+  </section>
+
+  <section class="section" id="submit">
+    <div class="section-head">
+      <div class="num">8</div>
+      <h2>Notebook Deliverables and Submission Checklist</h2>
+    </div>
+
+    <div class="deliverable">
+      <h3>Your Colab notebook must contain</h3>
+      <ol>
+        <li>A clean title cell with your name, roll number, and assignment title.</li>
+        <li>The pattern warm-up answers and plots.</li>
+        <li>The full preprocessing pipeline on <code>Data.csv</code>.</li>
+        <li>All required <code>iloc</code> exercises with one-line explanations.</li>
+        <li>SLR code, plot, and one prediction.</li>
+        <li>Multiple linear regression code and predicted vs actual profit comparison.</li>
+        <li>Logistic regression code, confusion matrix, accuracy, and interpretation.</li>
+        <li>Polynomial regression code, comparison plot, and prediction at level 6.5.</li>
+        <li>A final reflection section: “What I learned about choosing the right model.”</li>
+      </ol>
+    </div>
+
+    <h3>Suggested notebook structure</h3>
+    <pre><code class="language-text">1. Title and objective
+2. Pattern Warm-Up
+3. Data Preprocessing Lab
+4. Simple Linear Regression
+5. Multiple Linear Regression
+6. Logistic Regression
+7. Polynomial Regression
+8. Model Comparison
+9. Final Reflection</code></pre>
+
+    <h3>Rubric</h3>
+    <table class="rubric">
+      <thead>
+        <tr><th>Component</th><th>What earns full credit</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>Pattern exercises</td><td>Clear reasoning, not just final answers.</td></tr>
+        <tr><td><code>iloc</code> usage</td><td>Correct slices plus correct plain-English interpretation.</td></tr>
+        <tr><td>Preprocessing</td><td>Correct order: inspect, impute, encode, split, scale.</td></tr>
+        <tr><td>SLR implementation</td><td>Correct train/test workflow, plot, and interpretation.</td></tr>
+        <tr><td>Multiple linear regression</td><td>Correct feature handling, encoding, training, and interpretation.</td></tr>
+        <tr><td>Logistic regression</td><td>Correct feature selection, scaling, evaluation, and explanation.</td></tr>
+        <tr><td>Polynomial regression</td><td>Correct polynomial transformation, visual comparison, and reasoning.</td></tr>
+        <tr><td>Model comparison</td><td>Student clearly explains when and why each model should be used.</td></tr>
+        <tr><td>Notebook quality</td><td>Readable Markdown, clean sections, and code that runs top to bottom.</td></tr>
+      </tbody>
+    </table>
+
+    <div class="callout gold">
+      <strong>Submission rule:</strong> A notebook with only code and no explanations is incomplete. A notebook with explanations but missing working code is also incomplete. This assignment expects both.
+    </div>
+  </section>
+</div>
+
+</body>
+</html>
