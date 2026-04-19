@@ -1,0 +1,1171 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Data Preprocessing for Machine Learning</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#F6F4F0;--surface:#FFFFFF;--surface2:#F0EDE8;
+  --blue:#3B82C4;--blue-light:#EBF3FB;--blue-border:#C3DCF2;
+  --green:#4EA96B;--green-light:#EAF5EE;--green-border:#B8E0C5;
+  --orange:#E07A5F;--orange-light:#FDF1EE;--orange-border:#F2C4B8;
+  --purple:#7C5CBF;--purple-light:#F0ECFA;--purple-border:#CCBBE8;
+  --teal:#2E9E8E;--teal-light:#E6F5F3;--teal-border:#A8DFDA;
+  --pink:#C0567A;--pink-light:#F9EBF0;--pink-border:#E8B3C5;
+  --yellow:#D4A017;--yellow-light:#FDF6E3;--yellow-border:#F0D890;
+  --missing:#E53E3E;--missing-bg:#FFF5F5;
+  --present:#38A169;--present-bg:#F0FFF4;
+  --text:#1A202C;--muted:#718096;--border:#E2DDD8;
+  --shadow:0 2px 12px rgba(0,0,0,0.07);--shadow-lg:0 8px 30px rgba(0,0,0,0.10);
+  --r:14px;--r-sm:8px;
+}
+html{scroll-behavior:smooth}
+body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);line-height:1.75;font-size:16px}
+
+/* NAV */
+nav{position:sticky;top:0;z-index:100;background:rgba(255,255,255,0.95);backdrop-filter:blur(8px);border-bottom:1px solid var(--border);padding:0 2rem}
+.nav-inner{max-width:1100px;margin:0 auto;display:flex;align-items:center;gap:0;height:52px;overflow-x:auto}
+.nav-inner a{text-decoration:none;color:var(--muted);font-size:13px;font-weight:500;padding:0 14px;height:52px;display:flex;align-items:center;white-space:nowrap;border-bottom:2px solid transparent;transition:all .2s}
+.nav-inner a:hover{color:var(--text);border-bottom-color:var(--blue)}
+.nav-brand{font-weight:700;color:var(--text);font-size:14px;margin-right:16px;white-space:nowrap}
+
+/* LAYOUT */
+.page{max-width:1000px;margin:0 auto;padding:2rem 1.5rem 4rem}
+
+/* HERO */
+.hero{background:linear-gradient(135deg,#1e3a5f 0%,#2d6a8e 50%,#3a9688 100%);border-radius:var(--r);padding:3rem 2.5rem;margin-bottom:2.5rem;color:#fff}
+.hero h1{font-size:2.2rem;font-weight:700;line-height:1.2;margin-bottom:.6rem}
+.hero .subtitle{font-size:1.05rem;opacity:.85;font-weight:300;margin-bottom:2rem}
+.hero .badge-row{display:flex;flex-wrap:wrap;gap:.5rem}
+.hero .badge{background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.25);border-radius:999px;padding:.25rem .85rem;font-size:12px;font-weight:500}
+
+/* PIPELINE */
+.pipeline{display:flex;align-items:center;gap:0;margin:1.5rem 0;flex-wrap:wrap;justify-content:center}
+.pip-step{display:flex;flex-direction:column;align-items:center;gap:.4rem;min-width:110px}
+.pip-icon{width:52px;height:52px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:1.4rem;color:#fff;font-weight:700;position:relative}
+.pip-num{position:absolute;top:-4px;right:-4px;width:18px;height:18px;border-radius:50%;background:#fff;color:var(--text);font-size:10px;font-weight:700;display:flex;align-items:center;justify-content:center}
+.pip-label{font-size:11px;font-weight:600;text-align:center;color:var(--muted)}
+.pip-arrow{color:#CBD5E0;font-size:1.2rem;margin:0 4px;padding-bottom:18px}
+
+/* SECTION */
+.section{background:var(--surface);border-radius:var(--r);padding:2rem;margin-bottom:2rem;box-shadow:var(--shadow)}
+.section-header{display:flex;align-items:center;gap:.75rem;margin-bottom:1.5rem;padding-bottom:1rem;border-bottom:2px solid var(--bg)}
+.section-num{width:36px;height:36px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:.85rem;font-weight:700;color:#fff;flex-shrink:0}
+.section-header h2{font-size:1.35rem;font-weight:700}
+.section-header .section-tag{font-size:11px;font-weight:600;padding:.2rem .6rem;border-radius:999px;margin-left:auto}
+
+/* CONCEPT / WHY BOX */
+.concept-box{border-radius:var(--r-sm);padding:1.2rem 1.4rem;margin:1rem 0;border-left:4px solid}
+.concept-box.why{background:var(--yellow-light);border-color:var(--yellow)}
+.concept-box.info{background:var(--blue-light);border-color:var(--blue)}
+.concept-box.warn{background:var(--orange-light);border-color:var(--orange)}
+.concept-box.tip{background:var(--green-light);border-color:var(--green)}
+.concept-box strong{display:block;font-size:.8rem;font-weight:700;text-transform:uppercase;letter-spacing:.05em;margin-bottom:.4rem;opacity:.7}
+.concept-box p{font-size:.95rem;margin:0}
+
+/* CODE */
+pre{border-radius:var(--r-sm);margin:1rem 0;overflow-x:auto;font-size:13.5px;line-height:1.6}
+pre code.hljs{border-radius:var(--r-sm);padding:1.2rem 1.4rem}
+.output-block{background:#1e2d3d;border-radius:var(--r-sm);padding:1rem 1.4rem;font-family:'JetBrains Mono',monospace;font-size:12.5px;color:#a8c7e8;margin:-.5rem 0 1rem;line-height:1.6}
+.output-label{font-size:11px;font-weight:700;color:#60788a;text-transform:uppercase;letter-spacing:.05em;margin-bottom:.4rem}
+
+/* TABLES */
+.data-table{width:100%;border-collapse:collapse;font-size:14px;margin:1rem 0}
+.data-table th{background:var(--surface2);font-weight:600;padding:.6rem .9rem;text-align:left;border-bottom:2px solid var(--border)}
+.data-table td{padding:.55rem .9rem;border-bottom:1px solid var(--border)}
+.data-table tr:last-child td{border-bottom:none}
+.data-table tr:hover td{background:#FAFAFA}
+.cell-missing{background:var(--missing-bg);color:var(--missing);font-weight:700;font-family:'JetBrains Mono',monospace}
+.cell-imputed{background:#FFFBEB;color:#92600A;font-weight:700;font-family:'JetBrains Mono',monospace}
+.cell-present{color:var(--text)}
+.cell-yes{color:var(--green);font-weight:600}
+.cell-no{color:var(--orange);font-weight:600}
+
+/* CARDS */
+.card-row{display:flex;gap:1rem;flex-wrap:wrap;margin:1.2rem 0}
+.card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r-sm);padding:1.2rem;flex:1;min-width:200px;transition:box-shadow .2s,transform .2s}
+.card:hover{box-shadow:var(--shadow-lg);transform:translateY(-2px)}
+.card-icon{width:44px;height:44px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:1.3rem;margin-bottom:.8rem}
+.card h3{font-size:.95rem;font-weight:700;margin-bottom:.4rem}
+.card p{font-size:.88rem;color:var(--muted);line-height:1.5}
+
+/* HEATMAP */
+.heatmap{display:grid;grid-template-columns:repeat(4,1fr);gap:4px;margin:1rem 0}
+.heatmap-header{font-size:12px;font-weight:700;text-align:center;padding:.4rem;background:var(--surface2);border-radius:4px;color:var(--muted)}
+.heatmap-cell{font-size:12px;text-align:center;padding:.45rem .3rem;border-radius:4px;font-family:'JetBrains Mono',monospace;font-weight:500}
+.hm-ok{background:var(--present-bg);color:#276749}
+.hm-miss{background:var(--missing-bg);color:var(--missing);font-weight:700;animation:pulse 2s infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.55}}
+
+/* SVG FLOW */
+.flow-wrap{overflow-x:auto;margin:1.2rem 0}
+svg text{font-family:'Inter',sans-serif}
+
+/* SPLIT VIZ */
+.split-bar{display:flex;gap:4px;margin:1rem 0;height:44px;border-radius:var(--r-sm);overflow:hidden}
+.split-cell{display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:#fff;flex:1;transition:opacity .2s}
+.split-cell:hover{opacity:.8}
+.split-train{background:#4EA96B}
+.split-test{background:#E07A5F}
+.split-legend{display:flex;gap:1.5rem;margin:.6rem 0}
+.split-legend-item{display:flex;align-items:center;gap:.4rem;font-size:13px}
+.split-dot{width:12px;height:12px;border-radius:3px}
+
+/* ENCODING TOGGLE */
+.enc-toggle{display:flex;gap:1rem;margin:1rem 0;flex-wrap:wrap}
+.enc-panel{flex:1;min-width:220px}
+.enc-panel h4{font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;margin-bottom:.6rem;color:var(--muted)}
+.enc-table{border-radius:var(--r-sm);overflow:hidden;border:1px solid var(--border);font-size:13px;width:100%;border-collapse:collapse}
+.enc-table th{background:var(--surface2);padding:.5rem .7rem;text-align:center;font-weight:600;font-size:12px;border-bottom:1px solid var(--border)}
+.enc-table td{padding:.45rem .7rem;text-align:center;border-bottom:1px solid var(--border)}
+.enc-table tr:last-child td{border-bottom:none}
+.enc-highlight{background:#EBF3FB;font-weight:700;color:var(--blue)}
+.enc-new{background:var(--blue-light);font-weight:600;color:var(--blue)}
+.enc-zero{color:#CBD5E0}
+.enc-one{color:#4EA96B;font-weight:700}
+
+/* FORMULA CARD */
+.formula-row{display:flex;gap:1rem;flex-wrap:wrap;margin:1.2rem 0}
+.formula-card{flex:1;min-width:230px;border-radius:var(--r-sm);padding:1.3rem;border:1px solid var(--border)}
+.formula-card h4{font-size:14px;font-weight:700;margin-bottom:.6rem}
+.formula-card .formula{font-family:'JetBrains Mono',monospace;font-size:1.1rem;font-weight:500;text-align:center;padding:.8rem;border-radius:6px;margin:.6rem 0}
+.formula-card p{font-size:.85rem;color:var(--muted)}
+.formula-card ul{font-size:.85rem;color:var(--muted);padding-left:1rem;margin-top:.4rem}
+.formula-card li{margin:.2rem 0}
+
+/* LEAKAGE */
+.leakage-row{display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin:1.2rem 0}
+.leakage-box{border-radius:var(--r-sm);padding:1.2rem;border:2px solid}
+.leakage-wrong{border-color:var(--missing);background:var(--missing-bg)}
+.leakage-right{border-color:var(--green);background:var(--present-bg)}
+.leakage-box h4{font-size:13px;font-weight:700;margin-bottom:.8rem}
+.leakage-step{font-size:12px;padding:.35rem .7rem;border-radius:4px;margin:.3rem 0;font-weight:500}
+.ls-data{background:#E9F5FE;color:#1A6FA6}
+.ls-fit-wrong{background:var(--missing-bg);color:var(--missing)}
+.ls-fit-right{background:var(--present-bg);color:#276749}
+.ls-transform{background:#F0EDF9;color:var(--purple)}
+.ls-split{background:var(--yellow-light);color:#92600A}
+.ls-arrow{text-align:center;color:#CBD5E0;font-size:14px;margin:.15rem 0}
+
+/* SUMMARY TABLE */
+.summary-table{width:100%;border-collapse:collapse;font-size:14px}
+.summary-table th{background:var(--surface2);padding:.7rem 1rem;text-align:left;font-weight:600;border-bottom:2px solid var(--border)}
+.summary-table td{padding:.65rem 1rem;border-bottom:1px solid var(--border)}
+.summary-table tr:last-child td{border-bottom:none}
+.step-badge{display:inline-flex;align-items:center;justify-content:center;width:24px;height:24px;border-radius:50%;font-size:11px;font-weight:700;color:#fff}
+
+/* CHART WRAP */
+.chart-wrap{background:var(--surface2);border-radius:var(--r-sm);padding:1.2rem;margin:1.2rem 0}
+.chart-title{font-size:13px;font-weight:600;margin-bottom:.8rem;color:var(--muted)}
+.chart-pair{display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin:1.2rem 0}
+
+/* MISC */
+.tag{display:inline-block;font-size:11px;font-weight:700;padding:.15rem .55rem;border-radius:999px;margin:.1rem}
+code{font-family:'JetBrains Mono',monospace;font-size:87%;background:var(--surface2);padding:.1em .35em;border-radius:4px}
+pre code{background:transparent;padding:0;font-size:inherit}
+.two-col{display:grid;grid-template-columns:1fr 1fr;gap:1rem}
+.strat-table{width:100%;font-size:14px;border-collapse:collapse;margin:.8rem 0}
+.strat-table th{background:var(--surface2);padding:.5rem .8rem;text-align:left;font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.04em;color:var(--muted);border-bottom:1px solid var(--border)}
+.strat-table td{padding:.55rem .8rem;border-bottom:1px solid var(--border)}
+.strat-table tr:last-child td{border-bottom:none}
+.nan-cascade{display:flex;align-items:center;gap:6px;flex-wrap:wrap;background:#1e2d3d;border-radius:var(--r-sm);padding:1rem 1.4rem;margin:.8rem 0;font-family:'JetBrains Mono',monospace;font-size:14px}
+.nan-val{padding:.2rem .5rem;border-radius:4px;font-weight:600}
+.nan-num{background:#2d4a6a;color:#a8c7e8}
+.nan-nan{background:#5a1a1a;color:#fc8181;animation:pulse 1.5s infinite}
+.nan-op{color:#60788a}
+.nan-result{background:#3d1a1a;color:#fc8181;font-weight:700}
+.nan-eq{color:#60788a}
+
+.number-line{margin:1.2rem 0}
+.nl-track{height:12px;border-radius:6px;background:linear-gradient(90deg,#EBF3FB,var(--blue));position:relative;margin:2rem 0 1rem}
+.nl-tick{position:absolute;top:-22px;transform:translateX(-50%);font-size:11px;font-weight:600;color:var(--text)}
+.nl-tick::after{content:'';position:absolute;top:18px;left:50%;transform:translateX(-50%);width:2px;height:8px;background:var(--muted)}
+.nl-label{position:absolute;bottom:-22px;transform:translateX(-50%);font-size:11px;color:var(--muted)}
+.nl-dot{position:absolute;top:50%;transform:translate(-50%,-50%);width:14px;height:14px;border-radius:50%;border:2px solid #fff}
+
+@media(max-width:700px){
+  .hero h1{font-size:1.6rem}
+  .two-col,.chart-pair,.leakage-row{grid-template-columns:1fr}
+  .pipeline{gap:.3rem}
+  .pip-arrow{display:none}
+  .pip-step{min-width:70px}
+}
+</style>
+</head>
+<body>
+
+<nav>
+  <div class="nav-inner">
+    <span class="nav-brand">ML Preprocessing</span>
+    <a href="#intro">Intro</a>
+    <a href="#s1">Libraries</a>
+    <a href="#s2">Dataset</a>
+    <a href="#s3">Missing Values</a>
+    <a href="#s4">Encoding</a>
+    <a href="#s5">Train/Test Split</a>
+    <a href="#s6">Feature Scaling</a>
+    <a href="#s7">Pipeline</a>
+  </div>
+</nav>
+
+<div class="page">
+
+<!-- HERO -->
+<div class="hero" id="intro">
+  <h1>Data Preprocessing<br>for Machine Learning</h1>
+  <p class="subtitle">A beginner's guide — from raw, messy data to model-ready input</p>
+  <div class="badge-row">
+    <span class="badge">Python</span>
+    <span class="badge">scikit-learn</span>
+    <span class="badge">NumPy</span>
+    <span class="badge">Pandas</span>
+    <span class="badge">CS Undergrad Level</span>
+  </div>
+</div>
+
+<!-- PIPELINE OVERVIEW -->
+<div class="section">
+  <div class="section-header">
+    <div class="section-num" style="background:#1e3a5f">&#9654;</div>
+    <h2>The 6-Step Preprocessing Pipeline</h2>
+  </div>
+  <p style="color:var(--muted);font-size:.95rem;margin-bottom:1.2rem">Every ML project — regardless of domain — starts with these same six steps in this order. We'll work through each one using a single consistent dataset.</p>
+  <div class="pipeline">
+    <div class="pip-step">
+      <div class="pip-icon" style="background:#3B82C4">
+        <div class="pip-num">1</div>
+        <span>&#128218;</span>
+      </div>
+      <span class="pip-label">Import<br>Libraries</span>
+    </div>
+    <div class="pip-arrow">&#8594;</div>
+    <div class="pip-step">
+      <div class="pip-icon" style="background:#2E9E8E">
+        <div class="pip-num">2</div>
+        <span>&#128202;</span>
+      </div>
+      <span class="pip-label">Load<br>Dataset</span>
+    </div>
+    <div class="pip-arrow">&#8594;</div>
+    <div class="pip-step">
+      <div class="pip-icon" style="background:#E07A5F">
+        <div class="pip-num">3</div>
+        <span>&#128203;</span>
+      </div>
+      <span class="pip-label">Handle<br>Missing</span>
+    </div>
+    <div class="pip-arrow">&#8594;</div>
+    <div class="pip-step">
+      <div class="pip-icon" style="background:#7C5CBF">
+        <div class="pip-num">4</div>
+        <span>&#128257;</span>
+      </div>
+      <span class="pip-label">Encode<br>Categories</span>
+    </div>
+    <div class="pip-arrow">&#8594;</div>
+    <div class="pip-step">
+      <div class="pip-icon" style="background:#4EA96B">
+        <div class="pip-num">5</div>
+        <span>&#9986;</span>
+      </div>
+      <span class="pip-label">Train/Test<br>Split</span>
+    </div>
+    <div class="pip-arrow">&#8594;</div>
+    <div class="pip-step">
+      <div class="pip-icon" style="background:#C0567A">
+        <div class="pip-num">6</div>
+        <span>&#9881;</span>
+      </div>
+      <span class="pip-label">Feature<br>Scaling</span>
+    </div>
+  </div>
+
+  <div class="concept-box info" style="margin-top:1.5rem">
+    <strong>The Dataset</strong>
+    <p>We use one dataset throughout — a 10-row customer survey. Features: <strong>Country</strong> (text), <strong>Age</strong> (number), <strong>Salary</strong> (number). Target: <strong>Purchased</strong> (Yes/No). It has two missing values — the exact problems we'll fix.</p>
+  </div>
+</div>
+
+<!-- SECTION 1: LIBRARIES -->
+<div class="section" id="s1">
+  <div class="section-header">
+    <div class="section-num" style="background:#3B82C4">1</div>
+    <h2>Importing Libraries</h2>
+    <span class="section-tag" style="background:var(--blue-light);color:var(--blue)">Foundation</span>
+  </div>
+
+  <p>Every Python ML project begins with the same three imports. They are so universally used together that writing them becomes muscle memory within your first week of ML work.</p>
+
+  <div class="card-row" style="margin-top:1.2rem">
+    <div class="card" style="border-top:3px solid #4A90D9">
+      <div class="card-icon" style="background:#EBF3FB">&#129518;</div>
+      <h3>NumPy</h3>
+      <p>The <strong>calculator</strong>. Provides the N-dimensional array (<code>ndarray</code>) and fast vectorized math. Every ML algorithm operates on NumPy arrays under the hood.</p>
+    </div>
+    <div class="card" style="border-top:3px solid #4EA96B">
+      <div class="card-icon" style="background:var(--green-light)">&#128200;</div>
+      <h3>Pandas</h3>
+      <p>The <strong>spreadsheet manager</strong>. Reads CSV/Excel files into DataFrames — labeled tables you can slice, filter, and transform before handing off to sklearn.</p>
+    </div>
+    <div class="card" style="border-top:3px solid #E07A5F">
+      <div class="card-icon" style="background:var(--orange-light)">&#128247;</div>
+      <h3>Matplotlib</h3>
+      <p>The <strong>camera</strong>. Visualizes distributions, outliers, and patterns so you can <em>see</em> your data before modeling. Essential for inspecting what you're working with.</p>
+    </div>
+  </div>
+
+  <pre><code class="language-python"># The standard trio — write these at the top of every ML project
+import numpy as np               # Numerical arrays and math operations
+import matplotlib.pyplot as plt  # Plotting and visualization
+import pandas as pd              # DataFrames for tabular data</code></pre>
+</div>
+
+<!-- SECTION 2: DATASET -->
+<div class="section" id="s2">
+  <div class="section-header">
+    <div class="section-num" style="background:#2E9E8E">2</div>
+    <h2>Importing the Dataset</h2>
+    <span class="section-tag" style="background:var(--teal-light);color:var(--teal)">Load &amp; Inspect</span>
+  </div>
+
+  <p>Loading data is one line. But loading is only half the job — you must <em>inspect</em> what you loaded before touching anything. You can't fix what you can't see.</p>
+
+  <div class="concept-box why">
+    <strong>Why Inspect First?</strong>
+    <p>Inspecting before transforming tells you: what columns exist and their types, where missing values are hiding, what value ranges look suspicious. Skipping this is like starting surgery without reading the patient's chart.</p>
+  </div>
+
+  <h3 style="font-size:1rem;margin:1.2rem 0 .6rem">Raw Data — <code>Data.csv</code></h3>
+  <p style="font-size:.9rem;color:var(--muted);margin-bottom:.7rem">Two cells are highlighted in red — these are our missing values. We will fix them in Section 3.</p>
+  <table class="data-table">
+    <thead><tr><th>Index</th><th>Country</th><th>Age</th><th>Salary</th><th>Purchased</th></tr></thead>
+    <tbody>
+      <tr><td>0</td><td>France</td><td>44.0</td><td>72000.0</td><td class="cell-no">No</td></tr>
+      <tr><td>1</td><td>Spain</td><td>27.0</td><td>48000.0</td><td class="cell-yes">Yes</td></tr>
+      <tr><td>2</td><td>Germany</td><td>30.0</td><td>54000.0</td><td class="cell-no">No</td></tr>
+      <tr><td>3</td><td>Spain</td><td>38.0</td><td>61000.0</td><td class="cell-no">No</td></tr>
+      <tr><td>4</td><td>Germany</td><td>40.0</td><td class="cell-missing">NaN &#9888;</td><td class="cell-yes">Yes</td></tr>
+      <tr><td>5</td><td>France</td><td>35.0</td><td>58000.0</td><td class="cell-yes">Yes</td></tr>
+      <tr><td>6</td><td>Spain</td><td class="cell-missing">NaN &#9888;</td><td>52000.0</td><td class="cell-no">No</td></tr>
+      <tr><td>7</td><td>France</td><td>48.0</td><td>79000.0</td><td class="cell-yes">Yes</td></tr>
+      <tr><td>8</td><td>Germany</td><td>50.0</td><td>83000.0</td><td class="cell-no">No</td></tr>
+      <tr><td>9</td><td>France</td><td>37.0</td><td>67000.0</td><td class="cell-yes">Yes</td></tr>
+    </tbody>
+  </table>
+
+  <pre><code class="language-python">import pandas as pd
+import numpy as np
+
+# Load CSV into a DataFrame
+dataset = pd.read_csv('Data.csv')
+
+print(dataset.head())       # First 5 rows
+print(dataset.shape)        # (10, 4)
+print(dataset.info())       # Column types + non-null counts</code></pre>
+
+  <div class="output-block">
+    <div class="output-label">Output — dataset.info()</div>
+RangeIndex: 10 entries, 0 to 9
+Data columns (total 4 columns):
+ #   Column     Non-Null Count  Dtype
+---  ------     --------------  -----
+ 0   Country    10 non-null     object
+ 1   Age         9 non-null     float64   ← 1 missing
+ 2   Salary      9 non-null     float64   ← 1 missing
+ 3   Purchased  10 non-null     object
+  </div>
+
+  <pre><code class="language-python"># Separate features (X) from the target variable (y)
+X = dataset.iloc[:, :-1].values   # All rows, all columns EXCEPT the last → shape (10, 3)
+y = dataset.iloc[:, -1].values    # All rows, ONLY the last column → shape (10,)
+# .values converts Pandas DataFrame → NumPy array (sklearn's expected format)</code></pre>
+
+  <div class="concept-box info">
+    <strong>What is .iloc?</strong>
+    <p><code>iloc</code> = integer-location indexing. <code>[:, :-1]</code> means "all rows, all columns except the last." <code>[:, -1]</code> means "all rows, only the last column." The trailing <code>.values</code> strips the Pandas wrapper and returns a raw NumPy array.</p>
+  </div>
+</div>
+
+<!-- SECTION 3: MISSING VALUES -->
+<div class="section" id="s3">
+  <div class="section-header">
+    <div class="section-num" style="background:#E07A5F">3</div>
+    <h2>Handling Missing Values</h2>
+    <span class="section-tag" style="background:var(--orange-light);color:var(--orange)">SimpleImputer</span>
+  </div>
+
+  <p>Two cells in our dataset are <code>NaN</code> (Not a Number) — Salary for the Germany customer at row 4, and Age for the Spain customer at row 6.</p>
+
+  <div class="concept-box warn">
+    <strong>Why NaN Breaks Models</strong>
+    <p>ML algorithms perform math on your data — dot products, distances, gradient calculations. Any arithmetic involving <code>NaN</code> produces <code>NaN</code>. One missing value cascades through the entire computation and your model outputs nothing but <code>NaN</code>.</p>
+  </div>
+
+  <!-- NaN CASCADE VISUAL -->
+  <h3 style="font-size:.95rem;font-weight:700;margin:.8rem 0 .4rem;color:var(--muted);text-transform:uppercase;letter-spacing:.04em">The NaN Cascade</h3>
+  <div class="nan-cascade">
+    <span class="nan-val nan-num">44.0</span>
+    <span class="nan-op">+</span>
+    <span class="nan-val nan-num">27.0</span>
+    <span class="nan-op">+</span>
+    <span class="nan-val nan-nan">NaN</span>
+    <span class="nan-op">+</span>
+    <span class="nan-val nan-num">38.0</span>
+    <span class="nan-eq">=</span>
+    <span class="nan-val nan-result">NaN &nbsp; &#9888; entire column poisoned</span>
+  </div>
+
+  <!-- HEATMAP -->
+  <h3 style="font-size:.95rem;font-weight:700;margin:1.2rem 0 .5rem;color:var(--muted);text-transform:uppercase;letter-spacing:.04em">Missing Values Heatmap — where are the holes?</h3>
+  <p style="font-size:.88rem;color:var(--muted);margin-bottom:.6rem">Green = value present &nbsp;|&nbsp; Red = missing (NaN) — pulsing to draw your eye</p>
+  <div class="heatmap">
+    <div class="heatmap-header">Country</div><div class="heatmap-header">Age</div><div class="heatmap-header">Salary</div><div class="heatmap-header">Purchased</div>
+    <div class="heatmap-cell hm-ok">France</div><div class="heatmap-cell hm-ok">44.0</div><div class="heatmap-cell hm-ok">72000</div><div class="heatmap-cell hm-ok">No</div>
+    <div class="heatmap-cell hm-ok">Spain</div><div class="heatmap-cell hm-ok">27.0</div><div class="heatmap-cell hm-ok">48000</div><div class="heatmap-cell hm-ok">Yes</div>
+    <div class="heatmap-cell hm-ok">Germany</div><div class="heatmap-cell hm-ok">30.0</div><div class="heatmap-cell hm-ok">54000</div><div class="heatmap-cell hm-ok">No</div>
+    <div class="heatmap-cell hm-ok">Spain</div><div class="heatmap-cell hm-ok">38.0</div><div class="heatmap-cell hm-ok">61000</div><div class="heatmap-cell hm-ok">No</div>
+    <div class="heatmap-cell hm-ok">Germany</div><div class="heatmap-cell hm-ok">40.0</div><div class="heatmap-cell hm-miss">NaN</div><div class="heatmap-cell hm-ok">Yes</div>
+    <div class="heatmap-cell hm-ok">France</div><div class="heatmap-cell hm-ok">35.0</div><div class="heatmap-cell hm-ok">58000</div><div class="heatmap-cell hm-ok">Yes</div>
+    <div class="heatmap-cell hm-ok">Spain</div><div class="heatmap-cell hm-miss">NaN</div><div class="heatmap-cell hm-ok">52000</div><div class="heatmap-cell hm-ok">No</div>
+    <div class="heatmap-cell hm-ok">France</div><div class="heatmap-cell hm-ok">48.0</div><div class="heatmap-cell hm-ok">79000</div><div class="heatmap-cell hm-ok">Yes</div>
+    <div class="heatmap-cell hm-ok">Germany</div><div class="heatmap-cell hm-ok">50.0</div><div class="heatmap-cell hm-ok">83000</div><div class="heatmap-cell hm-ok">No</div>
+    <div class="heatmap-cell hm-ok">France</div><div class="heatmap-cell hm-ok">37.0</div><div class="heatmap-cell hm-ok">67000</div><div class="heatmap-cell hm-ok">Yes</div>
+  </div>
+
+  <pre><code class="language-python"># Detect missing values — count per column
+print(dataset.isnull().sum())</code></pre>
+  <div class="output-block">Country      0
+Age          1
+Salary       1
+Purchased    0</div>
+
+  <h3 style="font-size:1rem;font-weight:700;margin:1.4rem 0 .6rem">Strategy: SimpleImputer</h3>
+  <p style="margin-bottom:.8rem">Instead of deleting rows with missing values (wasting real data), we <em>impute</em> — fill in a statistically reasonable substitute.</p>
+
+  <table class="strat-table">
+    <thead><tr><th>Strategy</th><th>Best For</th><th>When to Avoid</th></tr></thead>
+    <tbody>
+      <tr><td><code>mean</code></td><td>Numerical, roughly symmetric distributions</td><td>When outliers skew the mean heavily</td></tr>
+      <tr><td><code>median</code></td><td>Numerical data with outliers (more robust)</td><td>When distribution is symmetric anyway</td></tr>
+      <tr><td><code>most_frequent</code></td><td>Categorical columns</td><td>When no single value clearly dominates</td></tr>
+    </tbody>
+  </table>
+
+  <!-- FIT/TRANSFORM FLOW -->
+  <h3 style="font-size:1rem;font-weight:700;margin:1.4rem 0 .5rem">The fit / transform Pattern</h3>
+  <p style="font-size:.9rem;color:var(--muted);margin-bottom:.8rem">This two-step pattern repeats in <em>every</em> sklearn transformer. Learn it once — apply it everywhere.</p>
+
+  <div class="flow-wrap">
+    <svg viewBox="0 0 720 130" width="100%" style="max-width:720px;display:block">
+      <!-- Raw Data Box -->
+      <rect x="10" y="30" width="130" height="70" rx="10" fill="#EBF3FB" stroke="#C3DCF2" stroke-width="1.5"/>
+      <text x="75" y="58" text-anchor="middle" font-size="12" font-weight="700" fill="#1A6FA6">Raw Data</text>
+      <text x="75" y="75" text-anchor="middle" font-size="10.5" fill="#60788a">Age: [44, 27, NaN…]</text>
+      <text x="75" y="90" text-anchor="middle" font-size="10.5" fill="#60788a">Salary: [72k, 48k, NaN…]</text>
+
+      <!-- Arrow 1 -->
+      <path d="M145 65 L195 65" stroke="#CBD5E0" stroke-width="2" fill="none" marker-end="url(#arr)"/>
+      <text x="170" y="55" text-anchor="middle" font-size="10" fill="#718096">fit()</text>
+
+      <!-- Fit Box -->
+      <rect x="200" y="20" width="160" height="90" rx="10" fill="#FEF4E8" stroke="#F0D890" stroke-width="1.5"/>
+      <text x="280" y="45" text-anchor="middle" font-size="12" font-weight="700" fill="#92600A">fit(X)</text>
+      <text x="280" y="62" text-anchor="middle" font-size="10.5" fill="#92600A">Learns statistics from data</text>
+      <text x="280" y="78" text-anchor="middle" font-size="10" fill="#b07d30">mean_age = 38.77</text>
+      <text x="280" y="93" text-anchor="middle" font-size="10" fill="#b07d30">mean_salary = 63777</text>
+
+      <!-- Arrow 2 -->
+      <path d="M365 65 L415 65" stroke="#CBD5E0" stroke-width="2" fill="none" marker-end="url(#arr)"/>
+      <text x="390" y="55" text-anchor="middle" font-size="10" fill="#718096">transform()</text>
+
+      <!-- Transform Box -->
+      <rect x="420" y="20" width="160" height="90" rx="10" fill="#F0EDF9" stroke="#CCBBE8" stroke-width="1.5"/>
+      <text x="500" y="45" text-anchor="middle" font-size="12" font-weight="700" fill="#5B3FA0">transform(X)</text>
+      <text x="500" y="62" text-anchor="middle" font-size="10.5" fill="#5B3FA0">Fills NaN using stored stats</text>
+      <text x="500" y="78" text-anchor="middle" font-size="10" fill="#7C5CBF">NaN → 38.77 (Age)</text>
+      <text x="500" y="93" text-anchor="middle" font-size="10" fill="#7C5CBF">NaN → 63777 (Salary)</text>
+
+      <!-- Arrow 3 -->
+      <path d="M585 65 L635 65" stroke="#CBD5E0" stroke-width="2" fill="none" marker-end="url(#arr)"/>
+
+      <!-- Clean Data Box -->
+      <rect x="640" y="30" width="70" height="70" rx="10" fill="#EAF5EE" stroke="#B8E0C5" stroke-width="1.5"/>
+      <text x="675" y="58" text-anchor="middle" font-size="11" font-weight="700" fill="#276749">Clean</text>
+      <text x="675" y="73" text-anchor="middle" font-size="11" font-weight="700" fill="#276749">Data</text>
+      <text x="675" y="88" text-anchor="middle" font-size="10" fill="#4EA96B">No NaN</text>
+
+      <defs>
+        <marker id="arr" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto">
+          <path d="M0,0 L0,6 L8,3 z" fill="#CBD5E0"/>
+        </marker>
+      </defs>
+    </svg>
+  </div>
+
+  <pre><code class="language-python">from sklearn.impute import SimpleImputer
+
+# Step 1 — create the imputer
+imputer = SimpleImputer(missing_values=np.nan, strategy='mean')
+
+# Step 2 — fit: learn the mean of Age (col 1) and Salary (col 2)
+imputer.fit(X[:, 1:3])
+
+# Step 3 — transform: replace NaN values with the learned means
+X[:, 1:3] = imputer.transform(X[:, 1:3])
+# Shortcut: X[:, 1:3] = imputer.fit_transform(X[:, 1:3])</code></pre>
+
+  <!-- BEFORE / AFTER IMPUTATION -->
+  <h3 style="font-size:.95rem;font-weight:700;margin:1.2rem 0 .5rem;color:var(--muted);text-transform:uppercase;letter-spacing:.04em">Before vs After Imputation</h3>
+  <div class="enc-toggle">
+    <div class="enc-panel">
+      <h4 style="color:var(--missing)">&#9888; Before — 2 missing values</h4>
+      <table class="enc-table">
+        <thead><tr><th>Country</th><th>Age</th><th>Salary</th></tr></thead>
+        <tbody>
+          <tr><td>France</td><td>44.0</td><td>72000</td></tr>
+          <tr><td>Spain</td><td>27.0</td><td>48000</td></tr>
+          <tr><td>Germany</td><td>30.0</td><td>54000</td></tr>
+          <tr><td>Spain</td><td>38.0</td><td>61000</td></tr>
+          <tr><td>Germany</td><td>40.0</td><td style="background:var(--missing-bg);color:var(--missing);font-weight:700">NaN</td></tr>
+          <tr><td>France</td><td>35.0</td><td>58000</td></tr>
+          <tr><td>Spain</td><td style="background:var(--missing-bg);color:var(--missing);font-weight:700">NaN</td><td>52000</td></tr>
+          <tr><td>France</td><td>48.0</td><td>79000</td></tr>
+          <tr><td>Germany</td><td>50.0</td><td>83000</td></tr>
+          <tr><td>France</td><td>37.0</td><td>67000</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="enc-panel">
+      <h4 style="color:var(--green)">&#10003; After — imputed with column mean</h4>
+      <table class="enc-table">
+        <thead><tr><th>Country</th><th>Age</th><th>Salary</th></tr></thead>
+        <tbody>
+          <tr><td>France</td><td>44.0</td><td>72000</td></tr>
+          <tr><td>Spain</td><td>27.0</td><td>48000</td></tr>
+          <tr><td>Germany</td><td>30.0</td><td>54000</td></tr>
+          <tr><td>Spain</td><td>38.0</td><td>61000</td></tr>
+          <tr><td>Germany</td><td>40.0</td><td class="cell-imputed">63777.8 &#8592; mean</td></tr>
+          <tr><td>France</td><td>35.0</td><td>58000</td></tr>
+          <tr><td>Spain</td><td class="cell-imputed">38.8 &#8592; mean</td><td>52000</td></tr>
+          <tr><td>France</td><td>48.0</td><td>79000</td></tr>
+          <tr><td>Germany</td><td>50.0</td><td>83000</td></tr>
+          <tr><td>France</td><td>37.0</td><td>67000</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+  <p style="font-size:.85rem;color:var(--muted)">Mean Age (9 values): (44+27+30+38+40+35+48+50+37) ÷ 9 = <strong>38.8</strong> &nbsp;|&nbsp; Mean Salary (9 values): 574000 ÷ 9 = <strong>63,777.8</strong></p>
+</div>
+
+<!-- SECTION 4: ENCODING -->
+<div class="section" id="s4">
+  <div class="section-header">
+    <div class="section-num" style="background:#7C5CBF">4</div>
+    <h2>Encoding Categorical Data</h2>
+    <span class="section-tag" style="background:var(--purple-light);color:var(--purple)">OneHotEncoder · LabelEncoder</span>
+  </div>
+
+  <p>Our dataset has two text columns: <code>Country</code> (France/Spain/Germany) and <code>Purchased</code> (Yes/No). ML models are mathematical — they cannot multiply or compute distances on strings. Everything must become a number.</p>
+
+  <!-- NAIVE ENCODING PROBLEM -->
+  <h3 style="font-size:1rem;font-weight:700;margin:1.2rem 0 .5rem">The Naive Encoding Problem</h3>
+  <p style="font-size:.9rem;margin-bottom:.8rem">The obvious approach — assign France=0, Germany=1, Spain=2 — introduces a false mathematical relationship.</p>
+
+  <div style="background:var(--surface2);border-radius:var(--r-sm);padding:1.2rem;margin:.8rem 0">
+    <div style="display:flex;justify-content:space-between;font-size:11px;font-weight:600;color:var(--muted);margin-bottom:.3rem">
+      <span>France = 0</span><span>Germany = 1</span><span>Spain = 2</span>
+    </div>
+    <div style="height:16px;border-radius:8px;background:linear-gradient(90deg,#EBF3FB 0%,#3B82C4 50%,#1e3a5f 100%);position:relative;margin-bottom:.8rem">
+      <div style="position:absolute;left:0;top:50%;transform:translateY(-50%);width:16px;height:16px;border-radius:50%;background:#4A90D9;border:2px solid #fff"></div>
+      <div style="position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:16px;height:16px;border-radius:50%;background:#2d5f8a;border:2px solid #fff"></div>
+      <div style="position:absolute;right:0;top:50%;transform:translateY(-50%);width:16px;height:16px;border-radius:50%;background:#1e3a5f;border:2px solid #fff"></div>
+    </div>
+    <p style="font-size:.85rem;color:var(--missing);font-weight:600">&#9888; This tells the model: Germany = (France + Spain) / 2 &nbsp; and &nbsp; Spain = 2 × France. Completely false.</p>
+  </div>
+
+  <div class="concept-box tip">
+    <strong>The Solution: One-Hot Encoding</strong>
+    <p>Replace the single Country column with <strong>three binary columns</strong> — one per country. Each row gets a <code>1</code> in its country's column and <code>0</code> in all others. No false ordering. No false distances. Pure identity.</p>
+  </div>
+
+  <!-- PART A: LABEL ENCODER -->
+  <h3 style="font-size:1rem;font-weight:700;margin:1.4rem 0 .5rem">Part A — Encoding the Target Variable <code>y</code> with LabelEncoder</h3>
+  <p style="font-size:.9rem;margin-bottom:.8rem">For a binary Yes/No target, <code>LabelEncoder</code> is appropriate. Binary values (0 and 1) carry no false ordering — the model simply learns which class means "purchased."</p>
+
+  <div class="two-col">
+    <div>
+      <pre><code class="language-python">from sklearn.preprocessing import LabelEncoder
+le = LabelEncoder()
+# 'No' → 0, 'Yes' → 1 (alphabetical order)
+y = le.fit_transform(y)
+print(y)</code></pre>
+    </div>
+    <div>
+      <div style="background:var(--surface2);border-radius:var(--r-sm);padding:1rem;font-size:.88rem">
+        <div style="font-weight:700;font-size:.8rem;text-transform:uppercase;letter-spacing:.04em;color:var(--muted);margin-bottom:.5rem">Before → After</div>
+        <div style="display:flex;gap:.4rem;flex-wrap:wrap">
+          <span style="background:var(--orange-light);color:var(--orange);padding:.2rem .5rem;border-radius:4px;font-size:13px;font-weight:600">No→0</span>
+          <span style="background:var(--green-light);color:var(--green);padding:.2rem .5rem;border-radius:4px;font-size:13px;font-weight:600">Yes→1</span>
+          <span style="background:var(--orange-light);color:var(--orange);padding:.2rem .5rem;border-radius:4px;font-size:13px;font-weight:600">No→0</span>
+          <span style="background:var(--orange-light);color:var(--orange);padding:.2rem .5rem;border-radius:4px;font-size:13px;font-weight:600">No→0</span>
+          <span style="background:var(--green-light);color:var(--green);padding:.2rem .5rem;border-radius:4px;font-size:13px;font-weight:600">Yes→1</span>
+          <span style="background:var(--green-light);color:var(--green);padding:.2rem .5rem;border-radius:4px;font-size:13px;font-weight:600">Yes→1</span>
+          <span style="background:var(--orange-light);color:var(--orange);padding:.2rem .5rem;border-radius:4px;font-size:13px;font-weight:600">No→0</span>
+          <span style="background:var(--green-light);color:var(--green);padding:.2rem .5rem;border-radius:4px;font-size:13px;font-weight:600">Yes→1</span>
+          <span style="background:var(--orange-light);color:var(--orange);padding:.2rem .5rem;border-radius:4px;font-size:13px;font-weight:600">No→0</span>
+          <span style="background:var(--green-light);color:var(--green);padding:.2rem .5rem;border-radius:4px;font-size:13px;font-weight:600">Yes→1</span>
+        </div>
+        <div style="margin-top:.6rem;font-family:'JetBrains Mono',monospace;font-size:13px;background:#1e2d3d;color:#a8c7e8;padding:.5rem .7rem;border-radius:4px">
+          y = [0 1 0 0 1 1 0 1 0 1]
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- PART B: ONE HOT -->
+  <h3 style="font-size:1rem;font-weight:700;margin:1.4rem 0 .5rem">Part B — Encoding <code>Country</code> with OneHotEncoder + ColumnTransformer</h3>
+  <p style="font-size:.9rem;margin-bottom:.8rem">One <code>Country</code> column becomes <strong>three binary columns</strong>. The <code>ColumnTransformer</code> applies the encoding to column 0 only, passing Age and Salary through unchanged.</p>
+
+  <!-- ENCODING TRANSFORMATION VISUAL -->
+  <div style="background:var(--surface2);border-radius:var(--r-sm);padding:1.2rem;margin:.8rem 0">
+    <p style="font-size:.8rem;font-weight:700;text-transform:uppercase;letter-spacing:.04em;color:var(--muted);margin-bottom:.8rem">Column Transformation — Country expands into 3 binary columns</p>
+    <div class="flow-wrap">
+      <svg viewBox="0 0 680 160" width="100%" style="max-width:680px;display:block">
+        <!-- Before -->
+        <text x="115" y="18" text-anchor="middle" font-size="11" font-weight="700" fill="#718096">BEFORE</text>
+        <rect x="20" y="25" width="90" height="120" rx="8" fill="#F0EDF9" stroke="#CCBBE8" stroke-width="1.5"/>
+        <text x="65" y="44" text-anchor="middle" font-size="11" font-weight="700" fill="#5B3FA0">Country</text>
+        <line x1="20" y1="50" x2="110" y2="50" stroke="#CCBBE8" stroke-width="1"/>
+        <text x="65" y="66" text-anchor="middle" font-size="10.5" fill="#7C5CBF">France</text>
+        <text x="65" y="80" text-anchor="middle" font-size="10.5" fill="#7C5CBF">Spain</text>
+        <text x="65" y="94" text-anchor="middle" font-size="10.5" fill="#7C5CBF">Germany</text>
+        <text x="65" y="108" text-anchor="middle" font-size="10.5" fill="#7C5CBF">Spain</text>
+        <text x="65" y="122" text-anchor="middle" font-size="10" fill="#9B8BC4">⋮</text>
+
+        <rect x="115" y="25" width="70" height="120" rx="8" fill="#EAF5EE" stroke="#B8E0C5" stroke-width="1.5"/>
+        <text x="150" y="44" text-anchor="middle" font-size="11" font-weight="700" fill="#276749">Age</text>
+        <line x1="115" y1="50" x2="185" y2="50" stroke="#B8E0C5" stroke-width="1"/>
+        <text x="150" y="66" text-anchor="middle" font-size="10.5" fill="#4EA96B">44</text>
+        <text x="150" y="80" text-anchor="middle" font-size="10.5" fill="#4EA96B">27</text>
+        <text x="150" y="94" text-anchor="middle" font-size="10.5" fill="#4EA96B">30</text>
+        <text x="150" y="108" text-anchor="middle" font-size="10.5" fill="#4EA96B">38</text>
+        <text x="150" y="122" text-anchor="middle" font-size="10" fill="#8BC4A0">⋮</text>
+
+        <rect x="190" y="25" width="70" height="120" rx="8" fill="#EAF5EE" stroke="#B8E0C5" stroke-width="1.5"/>
+        <text x="225" y="44" text-anchor="middle" font-size="11" font-weight="700" fill="#276749">Salary</text>
+        <line x1="190" y1="50" x2="260" y2="50" stroke="#B8E0C5" stroke-width="1"/>
+        <text x="225" y="66" text-anchor="middle" font-size="9.5" fill="#4EA96B">72000</text>
+        <text x="225" y="80" text-anchor="middle" font-size="9.5" fill="#4EA96B">48000</text>
+        <text x="225" y="94" text-anchor="middle" font-size="9.5" fill="#4EA96B">54000</text>
+        <text x="225" y="108" text-anchor="middle" font-size="9.5" fill="#4EA96B">61000</text>
+        <text x="225" y="122" text-anchor="middle" font-size="10" fill="#8BC4A0">⋮</text>
+
+        <!-- Arrow -->
+        <path d="M270 85 L315 85" stroke="#CBD5E0" stroke-width="2.5" fill="none" marker-end="url(#arr2)"/>
+        <text x="292" y="76" text-anchor="middle" font-size="10" fill="#718096">OneHot</text>
+        <text x="292" y="88" text-anchor="middle" font-size="10" fill="#718096">Encode</text>
+
+        <!-- After -->
+        <text x="500" y="18" text-anchor="middle" font-size="11" font-weight="700" fill="#718096">AFTER — 5 columns</text>
+        <rect x="325" y="25" width="55" height="120" rx="8" fill="#EBF3FB" stroke="#C3DCF2" stroke-width="1.5"/>
+        <text x="352" y="38" text-anchor="middle" font-size="9" font-weight="700" fill="#1A6FA6">is_</text>
+        <text x="352" y="50" text-anchor="middle" font-size="9" font-weight="700" fill="#1A6FA6">France</text>
+        <line x1="325" y1="55" x2="380" y2="55" stroke="#C3DCF2" stroke-width="1"/>
+        <text x="352" y="70" text-anchor="middle" font-size="11" font-weight="700" fill="#4EA96B">1</text>
+        <text x="352" y="84" text-anchor="middle" font-size="11" fill="#CBD5E0">0</text>
+        <text x="352" y="98" text-anchor="middle" font-size="11" fill="#CBD5E0">0</text>
+        <text x="352" y="112" text-anchor="middle" font-size="11" fill="#CBD5E0">0</text>
+        <text x="352" y="126" text-anchor="middle" font-size="10" fill="#9BB8D4">⋮</text>
+
+        <rect x="385" y="25" width="55" height="120" rx="8" fill="#EBF3FB" stroke="#C3DCF2" stroke-width="1.5"/>
+        <text x="412" y="38" text-anchor="middle" font-size="9" font-weight="700" fill="#1A6FA6">is_</text>
+        <text x="412" y="50" text-anchor="middle" font-size="9" font-weight="700" fill="#1A6FA6">Germany</text>
+        <line x1="385" y1="55" x2="440" y2="55" stroke="#C3DCF2" stroke-width="1"/>
+        <text x="412" y="70" text-anchor="middle" font-size="11" fill="#CBD5E0">0</text>
+        <text x="412" y="84" text-anchor="middle" font-size="11" fill="#CBD5E0">0</text>
+        <text x="412" y="98" text-anchor="middle" font-size="11" font-weight="700" fill="#4EA96B">1</text>
+        <text x="412" y="112" text-anchor="middle" font-size="11" fill="#CBD5E0">0</text>
+        <text x="412" y="126" text-anchor="middle" font-size="10" fill="#9BB8D4">⋮</text>
+
+        <rect x="445" y="25" width="55" height="120" rx="8" fill="#EBF3FB" stroke="#C3DCF2" stroke-width="1.5"/>
+        <text x="472" y="38" text-anchor="middle" font-size="9" font-weight="700" fill="#1A6FA6">is_</text>
+        <text x="472" y="50" text-anchor="middle" font-size="9" font-weight="700" fill="#1A6FA6">Spain</text>
+        <line x1="445" y1="55" x2="500" y2="55" stroke="#C3DCF2" stroke-width="1"/>
+        <text x="472" y="70" text-anchor="middle" font-size="11" fill="#CBD5E0">0</text>
+        <text x="472" y="84" text-anchor="middle" font-size="11" font-weight="700" fill="#4EA96B">1</text>
+        <text x="472" y="98" text-anchor="middle" font-size="11" fill="#CBD5E0">0</text>
+        <text x="472" y="112" text-anchor="middle" font-size="11" font-weight="700" fill="#4EA96B">1</text>
+        <text x="472" y="126" text-anchor="middle" font-size="10" fill="#9BB8D4">⋮</text>
+
+        <rect x="505" y="25" width="50" height="120" rx="8" fill="#EAF5EE" stroke="#B8E0C5" stroke-width="1.5"/>
+        <text x="530" y="44" text-anchor="middle" font-size="10" font-weight="700" fill="#276749">Age</text>
+        <line x1="505" y1="50" x2="555" y2="50" stroke="#B8E0C5" stroke-width="1"/>
+        <text x="530" y="66" text-anchor="middle" font-size="10" fill="#4EA96B">44</text>
+        <text x="530" y="80" text-anchor="middle" font-size="10" fill="#4EA96B">27</text>
+        <text x="530" y="94" text-anchor="middle" font-size="10" fill="#4EA96B">30</text>
+        <text x="530" y="108" text-anchor="middle" font-size="10" fill="#4EA96B">38</text>
+        <text x="530" y="122" text-anchor="middle" font-size="10" fill="#8BC4A0">⋮</text>
+
+        <rect x="560" y="25" width="55" height="120" rx="8" fill="#EAF5EE" stroke="#B8E0C5" stroke-width="1.5"/>
+        <text x="587" y="44" text-anchor="middle" font-size="9" font-weight="700" fill="#276749">Salary</text>
+        <line x1="560" y1="50" x2="615" y2="50" stroke="#B8E0C5" stroke-width="1"/>
+        <text x="587" y="66" text-anchor="middle" font-size="8.5" fill="#4EA96B">72000</text>
+        <text x="587" y="80" text-anchor="middle" font-size="8.5" fill="#4EA96B">48000</text>
+        <text x="587" y="94" text-anchor="middle" font-size="8.5" fill="#4EA96B">54000</text>
+        <text x="587" y="108" text-anchor="middle" font-size="8.5" fill="#4EA96B">61000</text>
+        <text x="587" y="122" text-anchor="middle" font-size="10" fill="#8BC4A0">⋮</text>
+
+        <defs>
+          <marker id="arr2" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto">
+            <path d="M0,0 L0,6 L8,3 z" fill="#CBD5E0"/>
+          </marker>
+        </defs>
+      </svg>
+    </div>
+  </div>
+
+  <pre><code class="language-python">from sklearn.compose import ColumnTransformer
+from sklearn.preprocessing import OneHotEncoder
+
+ct = ColumnTransformer(
+    transformers=[
+        ('encoder', OneHotEncoder(), [0])  # OneHotEncode column 0 (Country)
+    ],
+    remainder='passthrough'  # Keep Age and Salary columns unchanged
+)
+# np.array() converts the sparse matrix output to a dense NumPy array
+X = np.array(ct.fit_transform(X))</code></pre>
+
+  <div class="concept-box info">
+    <strong>Dummy Variable Trap</strong>
+    <p>With 3 countries, knowing 2 dummy columns determines the 3rd (if <code>is_France=0</code> and <code>is_Germany=0</code>, then <code>is_Spain=1</code> by necessity). This creates multicollinearity. Modern sklearn handles this correctly by default via <code>drop='if_binary'</code> logic, but be aware of the concept for other tools.</p>
+  </div>
+</div>
+
+<!-- SECTION 5: TRAIN/TEST SPLIT -->
+<div class="section" id="s5">
+  <div class="section-header">
+    <div class="section-num" style="background:#4EA96B">5</div>
+    <h2>Splitting into Training &amp; Test Sets</h2>
+    <span class="section-tag" style="background:var(--green-light);color:var(--green)">train_test_split</span>
+  </div>
+
+  <div class="concept-box why">
+    <strong>The Exam Analogy</strong>
+    <p>If your professor handed out the exact exam questions a week early, a student could score 100% by pure memorization — without understanding anything. To test real understanding, the exam must use <em>new</em> questions. ML models face the same test. We hold out data the model never sees during training, then evaluate on that held-out set. A model scoring 99% on training data but 60% on test data has <strong>overfit</strong> — it memorized, not learned.</p>
+  </div>
+
+  <!-- SPLIT VISUAL -->
+  <h3 style="font-size:.95rem;font-weight:700;margin:1.2rem 0 .4rem;color:var(--muted);text-transform:uppercase;letter-spacing:.04em">80 / 20 Split — 10 rows, shuffled then divided</h3>
+  <div class="split-bar">
+    <div class="split-cell split-train" title="Train row 0">S6</div>
+    <div class="split-cell split-train" title="Train row 1">S4</div>
+    <div class="split-cell split-train" title="Train row 2">S0</div>
+    <div class="split-cell split-train" title="Train row 3">S3</div>
+    <div class="split-cell split-train" title="Train row 4">S1</div>
+    <div class="split-cell split-train" title="Train row 5">S7</div>
+    <div class="split-cell split-train" title="Train row 6">S8</div>
+    <div class="split-cell split-train" title="Train row 7">S5</div>
+    <div class="split-cell split-test" title="Test row 0">S2</div>
+    <div class="split-cell split-test" title="Test row 1">S9</div>
+  </div>
+  <div class="split-legend">
+    <div class="split-legend-item"><div class="split-dot" style="background:#4EA96B"></div><strong>Training set (8 rows, 80%)</strong> — model learns from this</div>
+    <div class="split-legend-item"><div class="split-dot" style="background:#E07A5F"></div><strong>Test set (2 rows, 20%)</strong> — never touched until evaluation</div>
+  </div>
+
+  <div class="chart-wrap" style="margin:1rem 0">
+    <div class="chart-title">Split Ratio Visualization</div>
+    <canvas id="splitChart" height="80"></canvas>
+  </div>
+
+  <pre><code class="language-python">from sklearn.model_selection import train_test_split
+
+X_train, X_test, y_train, y_test = train_test_split(
+    X,               # Feature matrix — shape (10, 5) after encoding
+    y,               # Target vector — shape (10,)
+    test_size=0.2,   # 20% → test set (2 rows)
+    random_state=1   # Fix the random seed for reproducible results
+)
+
+print("X_train:", X_train.shape)   # (8, 5)
+print("X_test:", X_test.shape)     # (2, 5)</code></pre>
+
+  <div class="output-block">X_train: (8, 5)
+X_test:  (2, 5)
+y_train: [0 1 1 0 1 1 0 0]
+y_test:  [0 1]</div>
+
+  <div class="concept-box info">
+    <strong>Why random_state Matters</strong>
+    <p><code>train_test_split</code> shuffles the dataset randomly before dividing it. Without a fixed seed, you get a different split every run — making results impossible to reproduce, compare, or debug. <code>random_state=1</code> (or any integer) locks the shuffle so everyone running the code gets identical results.</p>
+  </div>
+</div>
+
+<!-- SECTION 6: FEATURE SCALING -->
+<div class="section" id="s6">
+  <div class="section-header">
+    <div class="section-num" style="background:#C0567A">6</div>
+    <h2>Feature Scaling</h2>
+    <span class="section-tag" style="background:var(--pink-light);color:var(--pink)">StandardScaler · MinMaxScaler</span>
+  </div>
+
+  <p>Look at our feature columns after encoding. Age ranges from 27–50. Salary ranges from 48,000–83,000. That is a 1,600× difference in scale.</p>
+
+  <div class="concept-box warn">
+    <strong>The Dominant Feature Problem</strong>
+    <p>Consider two customers — A: Age=30, Salary=50,000 and B: Age=50, Salary=51,000. The Age difference is 20. The Salary difference is 1,000. In any distance calculation, Salary dominates by 50×, making Age <em>invisible</em> to the algorithm. The model learns the wrong pattern — not because the data is wrong, but because the <em>scale</em> is misleading.</p>
+  </div>
+
+  <!-- SCALE DOMINANCE CHART -->
+  <div class="chart-pair">
+    <div class="chart-wrap">
+      <div class="chart-title">Before Scaling — Age values (27–50)</div>
+      <canvas id="ageChart" height="160"></canvas>
+    </div>
+    <div class="chart-wrap">
+      <div class="chart-title">Before Scaling — Salary values (48,000–83,000)</div>
+      <canvas id="salaryChart" height="160"></canvas>
+    </div>
+  </div>
+  <p style="font-size:.85rem;color:var(--muted);text-align:center;margin-top:-.4rem">These two features live on completely different scales — the algorithm can't fairly weigh them.</p>
+
+  <!-- FORMULA CARDS -->
+  <h3 style="font-size:1rem;font-weight:700;margin:1.4rem 0 .6rem">Two Scaling Strategies</h3>
+  <div class="formula-row">
+    <div class="formula-card" style="border-color:var(--blue-border);background:var(--blue-light)">
+      <h4 style="color:var(--blue)">StandardScaler — Standardization</h4>
+      <div class="formula" style="background:#fff;color:var(--blue);border:1px solid var(--blue-border)">
+        z = (x &minus; &mu;) / &sigma;
+      </div>
+      <p>Transforms each feature to <strong>mean = 0, std = 1</strong>. The result is a <em>z-score</em>: how many standard deviations above or below the mean.</p>
+      <ul>
+        <li>z = 0 → value is at the mean</li>
+        <li>z = 1 → one std above mean</li>
+        <li>z = −2 → two stds below mean</li>
+      </ul>
+    </div>
+    <div class="formula-card" style="border-color:var(--green-border);background:var(--green-light)">
+      <h4 style="color:var(--green)">MinMaxScaler — Normalization</h4>
+      <div class="formula" style="background:#fff;color:var(--green);border:1px solid var(--green-border)">
+        x' = (x &minus; x<sub>min</sub>) / (x<sub>max</sub> &minus; x<sub>min</sub>)
+      </div>
+      <p>Compresses each feature into the range <strong>[0, 1]</strong>. Preserves the original distribution shape.</p>
+      <ul>
+        <li>x' = 0 → minimum value</li>
+        <li>x' = 1 → maximum value</li>
+        <li>x' = 0.5 → midpoint of range</li>
+      </ul>
+    </div>
+  </div>
+
+  <table class="strat-table" style="margin:.8rem 0">
+    <thead><tr><th>Use Case</th><th>Recommended</th></tr></thead>
+    <tbody>
+      <tr><td>Most algorithms: SVM, k-NN, linear/logistic regression</td><td><code>StandardScaler</code></td></tr>
+      <tr><td>Neural networks with sigmoid/tanh (bounded outputs)</td><td><code>MinMaxScaler</code></td></tr>
+      <tr><td>Data has outliers that skew the distribution</td><td><code>StandardScaler</code> (outliers ≠ infinite)</td></tr>
+      <tr><td>You need values bounded to a specific range</td><td><code>MinMaxScaler</code></td></tr>
+    </tbody>
+  </table>
+
+  <!-- STANDARDSCALER VISUALIZATION -->
+  <h3 style="font-size:1rem;font-weight:700;margin:1.4rem 0 .5rem">StandardScaler: Visualizing the Transformation</h3>
+  <div class="chart-wrap">
+    <div class="chart-title">Age column — raw values vs z-scores (both X_train rows)</div>
+    <canvas id="scalingChart" height="150"></canvas>
+  </div>
+
+  <!-- DATA LEAKAGE DIAGRAM -->
+  <h3 style="font-size:1rem;font-weight:700;margin:1.4rem 0 .5rem">The Critical Rule: Fit on Train, Transform Both</h3>
+  <p style="font-size:.9rem;margin-bottom:.8rem">This is the rule that catches the most beginners. The scaler must <strong>learn statistics only from training data</strong>.</p>
+
+  <div class="leakage-row">
+    <div class="leakage-box leakage-wrong">
+      <h4 style="color:var(--missing)">&#10007; Wrong — Data Leakage</h4>
+      <div class="leakage-step ls-data">1. Full dataset (train + test combined)</div>
+      <div class="ls-arrow">&#8595;</div>
+      <div class="leakage-step ls-fit-wrong">2. scaler.fit_transform(ALL data) ← leakage here</div>
+      <div class="ls-arrow">&#8595;</div>
+      <div class="leakage-step ls-split">3. Split into train / test</div>
+      <div class="ls-arrow">&#8595;</div>
+      <div class="leakage-step ls-transform">4. Train model</div>
+      <div style="margin-top:.6rem;font-size:.82rem;color:var(--missing)">Test data influenced the scaler. The model has "seen" the test set via its statistics. Evaluation is dishonest.</div>
+    </div>
+    <div class="leakage-box leakage-right">
+      <h4 style="color:var(--green)">&#10003; Correct — No Leakage</h4>
+      <div class="leakage-step ls-data">1. Full dataset (train + test combined)</div>
+      <div class="ls-arrow">&#8595;</div>
+      <div class="leakage-step ls-split">2. Split into train / test first</div>
+      <div class="ls-arrow">&#8595;</div>
+      <div class="leakage-step ls-fit-right">3. scaler.fit_transform(X_train only) ← learns from train</div>
+      <div class="ls-arrow">&#8595;</div>
+      <div class="leakage-step ls-transform">4. scaler.transform(X_test) ← applies train's stats to test</div>
+      <div style="margin-top:.6rem;font-size:.82rem;color:var(--green)">Test set is truly unseen. Evaluation reflects real-world performance.</div>
+    </div>
+  </div>
+
+  <div class="concept-box tip">
+    <strong>The Intuition</strong>
+    <p>The test set represents <em>future, unknown customers</em>. Future customers cannot influence how you normalized your training data — you haven't met them yet. The correct approach simulates this by keeping test data completely isolated until after the scaler is fit.</p>
+  </div>
+
+  <pre><code class="language-python">from sklearn.preprocessing import StandardScaler
+
+sc = StandardScaler()
+
+# Fit on training data: learns mean and std from X_train ONLY
+# Then immediately transforms X_train using those statistics
+X_train = sc.fit_transform(X_train)
+
+# Transform test data: applies the SAME mean/std learned from training
+# Do NOT call fit() or fit_transform() here — that would be data leakage
+X_test = sc.transform(X_test)</code></pre>
+
+  <div class="chart-wrap" style="margin-top:1rem">
+    <div class="chart-title">After Scaling — Age and Salary z-scores now live on the same scale</div>
+    <canvas id="afterScaleChart" height="150"></canvas>
+  </div>
+  <p style="font-size:.85rem;color:var(--muted);text-align:center;margin-top:.3rem">Both features now range roughly −2 to +2. No column dominates.</p>
+</div>
+
+<!-- SECTION 7: COMPLETE PIPELINE -->
+<div class="section" id="s7">
+  <div class="section-header">
+    <div class="section-num" style="background:#1e3a5f">&#9654;</div>
+    <h2>Complete Pipeline</h2>
+    <span class="section-tag" style="background:#EBF3FB;color:#1e3a5f">Production Template</span>
+  </div>
+  <p>All six steps chained into one clean, standalone script. Use this as your starting template for every new ML project.</p>
+
+  <pre><code class="language-python"># ================================================================
+# DATA PREPROCESSING PIPELINE — complete template
+# ================================================================
+
+# Step 1: Import Libraries
+import numpy as np
+import matplotlib.pyplot as plt
+import pandas as pd
+from sklearn.impute import SimpleImputer
+from sklearn.compose import ColumnTransformer
+from sklearn.preprocessing import OneHotEncoder, LabelEncoder, StandardScaler
+from sklearn.model_selection import train_test_split
+
+# Step 2: Import the Dataset
+dataset = pd.read_csv('Data.csv')
+X = dataset.iloc[:, :-1].values   # Features: all columns except last
+y = dataset.iloc[:, -1].values    # Target: last column only
+
+# Step 3: Handle Missing Values
+imputer = SimpleImputer(missing_values=np.nan, strategy='mean')
+imputer.fit(X[:, 1:3])                     # Learn means from Age and Salary
+X[:, 1:3] = imputer.transform(X[:, 1:3])  # Replace NaNs with column means
+
+# Step 4: Encode Categorical Data
+ct = ColumnTransformer(
+    transformers=[('encoder', OneHotEncoder(), [0])],
+    remainder='passthrough'
+)
+X = np.array(ct.fit_transform(X))   # Country → 3 binary columns
+
+le = LabelEncoder()
+y = le.fit_transform(y)              # Yes/No → 1/0
+
+# Step 5: Split into Training and Test Sets
+X_train, X_test, y_train, y_test = train_test_split(
+    X, y,
+    test_size=0.2,     # 20% held out for evaluation
+    random_state=1     # Fixed seed for reproducibility
+)
+
+# Step 6: Feature Scaling
+sc = StandardScaler()
+X_train = sc.fit_transform(X_train)  # Fit on train, transform train
+X_test = sc.transform(X_test)        # Transform test using train statistics
+
+# Data is now ready for model training
+print("X_train shape:", X_train.shape)   # (8, 5)
+print("X_test shape:", X_test.shape)     # (2, 5)
+print("y_train:", y_train)
+print("y_test:", y_test)</code></pre>
+
+  <div class="output-block">
+    <div class="output-label">Output</div>
+X_train shape: (8, 5)
+X_test shape:  (2, 5)
+y_train: [0 1 1 0 1 1 0 0]
+y_test:  [0 1]</div>
+
+  <div class="concept-box tip">
+    <strong>What Comes Next?</strong>
+    <p>At this point, <code>X_train</code> and <code>y_train</code> are ready to pass to any sklearn model: <code>model.fit(X_train, y_train)</code>. After training, evaluate with <code>model.predict(X_test)</code> and compare predictions to <code>y_test</code>. This is the full ML loop — and you've just completed the hardest, most error-prone part of it.</p>
+  </div>
+</div>
+
+<!-- SUMMARY -->
+<div class="section">
+  <div class="section-header">
+    <div class="section-num" style="background:#1e3a5f">&#10003;</div>
+    <h2>Summary</h2>
+  </div>
+  <table class="summary-table">
+    <thead><tr><th>#</th><th>Step</th><th>Tool</th><th>Why It Matters</th></tr></thead>
+    <tbody>
+      <tr>
+        <td><span class="step-badge" style="background:#3B82C4">1</span></td>
+        <td><strong>Import Libraries</strong></td>
+        <td><code>numpy</code>, <code>pandas</code>, <code>matplotlib</code></td>
+        <td>Standard foundation for all ML work in Python</td>
+      </tr>
+      <tr>
+        <td><span class="step-badge" style="background:#2E9E8E">2</span></td>
+        <td><strong>Import Dataset</strong></td>
+        <td><code>pd.read_csv</code>, <code>iloc</code></td>
+        <td>Load and inspect before touching anything</td>
+      </tr>
+      <tr>
+        <td><span class="step-badge" style="background:#E07A5F">3</span></td>
+        <td><strong>Handle Missing Values</strong></td>
+        <td><code>SimpleImputer(strategy='mean')</code></td>
+        <td>NaN breaks all arithmetic in models</td>
+      </tr>
+      <tr>
+        <td><span class="step-badge" style="background:#7C5CBF">4</span></td>
+        <td><strong>Encode Categories</strong></td>
+        <td><code>OneHotEncoder</code> + <code>LabelEncoder</code></td>
+        <td>Models need numbers, not strings</td>
+      </tr>
+      <tr>
+        <td><span class="step-badge" style="background:#4EA96B">5</span></td>
+        <td><strong>Train/Test Split</strong></td>
+        <td><code>train_test_split(test_size=0.2)</code></td>
+        <td>Honest evaluation on data the model has never seen</td>
+      </tr>
+      <tr>
+        <td><span class="step-badge" style="background:#C0567A">6</span></td>
+        <td><strong>Feature Scaling</strong></td>
+        <td><code>StandardScaler</code>, fit on train only</td>
+        <td>Prevent large-scale features from drowning out small ones</td>
+      </tr>
+    </tbody>
+  </table>
+  <p style="font-size:.9rem;color:var(--muted);margin-top:1rem">This pipeline is the foundation. Every ML project — classification, regression, clustering, deep learning — begins with some version of these six steps.</p>
+</div>
+
+</div><!-- end .page -->
+
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+  // Syntax highlighting
+  document.querySelectorAll('pre code').forEach(el => hljs.highlightElement(el));
+
+  const labels8 = ['S6','S4','S0','S3','S1','S7','S8','S5'];
+
+  // --- SPLIT CHART ---
+  new Chart(document.getElementById('splitChart'), {
+    type: 'bar',
+    data: {
+      labels: ['Dataset Split'],
+      datasets: [
+        { label: 'Training (80% — 8 rows)', data: [80], backgroundColor: '#4EA96B', borderRadius: 4 },
+        { label: 'Test (20% — 2 rows)', data: [20], backgroundColor: '#E07A5F', borderRadius: 4 }
+      ]
+    },
+    options: {
+      indexAxis: 'y', responsive: true, maintainAspectRatio: true,
+      plugins: { legend: { position: 'bottom', labels: { font: { size: 12 } } } },
+      scales: {
+        x: { stacked: true, max: 100, ticks: { callback: v => v + '%' }, grid: { color: '#F0EDE8' } },
+        y: { stacked: true, display: false }
+      }
+    }
+  });
+
+  // --- AGE CHART (before scaling) ---
+  const ageData = [38.77, 40, 44, 38, 27, 48, 50, 35];
+  new Chart(document.getElementById('ageChart'), {
+    type: 'bar',
+    data: {
+      labels: labels8,
+      datasets: [{ label: 'Age', data: ageData, backgroundColor: '#3B82C4aa', borderColor: '#3B82C4', borderWidth: 1, borderRadius: 4 }]
+    },
+    options: {
+      responsive: true, plugins: { legend: { display: false } },
+      scales: {
+        y: { min: 0, max: 60, grid: { color: '#F0EDE8' }, ticks: { font: { size: 11 } } },
+        x: { ticks: { font: { size: 11 } } }
+      }
+    }
+  });
+
+  // --- SALARY CHART (before scaling) ---
+  const salaryData = [52000, 63778, 72000, 61000, 48000, 79000, 83000, 58000];
+  new Chart(document.getElementById('salaryChart'), {
+    type: 'bar',
+    data: {
+      labels: labels8,
+      datasets: [{ label: 'Salary', data: salaryData, backgroundColor: '#E07A5Faa', borderColor: '#E07A5F', borderWidth: 1, borderRadius: 4 }]
+    },
+    options: {
+      responsive: true, plugins: { legend: { display: false } },
+      scales: {
+        y: { min: 0, max: 100000, grid: { color: '#F0EDE8' }, ticks: { font: { size: 11 }, callback: v => (v/1000)+'k' } },
+        x: { ticks: { font: { size: 11 } } }
+      }
+    }
+  });
+
+  // --- BEFORE/AFTER SCALING: Age z-scores ---
+  const ageRaw   = [38.77, 40, 44, 38, 27, 48, 50, 35];
+  const ageZ     = [0.26, 0.37, 0.64, 0.23, -1.79, 1.01, 1.39, -0.25];
+  new Chart(document.getElementById('scalingChart'), {
+    type: 'bar',
+    data: {
+      labels: labels8,
+      datasets: [
+        { label: 'Raw Age (÷10 for scale)', data: ageRaw.map(v => v/10), backgroundColor: '#3B82C444', borderColor: '#3B82C4', borderWidth: 1, borderRadius: 3 },
+        { label: 'Age z-score (after StandardScaler)', data: ageZ, backgroundColor: '#4EA96Baa', borderColor: '#4EA96B', borderWidth: 1, borderRadius: 3 }
+      ]
+    },
+    options: {
+      responsive: true,
+      plugins: { legend: { position: 'bottom', labels: { font: { size: 11 } } } },
+      scales: {
+        y: { grid: { color: '#F0EDE8' }, ticks: { font: { size: 11 } } },
+        x: { ticks: { font: { size: 11 } } }
+      }
+    }
+  });
+
+  // --- AFTER SCALING: Age & Salary z-scores together ---
+  const ageZs    = [0.26, 0.37, 0.64, 0.23, -1.79, 1.01, 1.39, -0.25];
+  const salaryZs = [-1.13, 0.37, 0.75, 0.17, -1.64, 1.27, 1.76, -0.70];
+  new Chart(document.getElementById('afterScaleChart'), {
+    type: 'bar',
+    data: {
+      labels: labels8,
+      datasets: [
+        { label: 'Age (z-score)', data: ageZs, backgroundColor: '#3B82C4aa', borderColor: '#3B82C4', borderWidth: 1, borderRadius: 3 },
+        { label: 'Salary (z-score)', data: salaryZs, backgroundColor: '#C0567Aaa', borderColor: '#C0567A', borderWidth: 1, borderRadius: 3 }
+      ]
+    },
+    options: {
+      responsive: true,
+      plugins: { legend: { position: 'bottom', labels: { font: { size: 11 } } } },
+      scales: {
+        y: { min: -2.5, max: 2.5, grid: { color: '#F0EDE8' }, ticks: { font: { size: 11 } } },
+        x: { ticks: { font: { size: 11 } } }
+      }
+    }
+  });
+});
+</script>
+</body>
+</html>
