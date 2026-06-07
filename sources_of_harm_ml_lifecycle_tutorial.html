@@ -1,0 +1,3860 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Sources of Harm Throughout the ML Life Cycle - Interactive Tutorial</title>
+  <style>
+    :root {
+      --bg: #f5f5f7;
+      --bg-soft: #fbfbfd;
+      --card: rgba(255, 255, 255, 0.88);
+      --card-solid: #ffffff;
+      --ink: #1d1d1f;
+      --muted: #6e6e73;
+      --line: rgba(0, 0, 0, 0.08);
+      --line-strong: rgba(0, 0, 0, 0.14);
+      --blue: #0071e3;
+      --blue-soft: #e8f2ff;
+      --green: #34c759;
+      --green-soft: #eafaf0;
+      --amber: #ff9f0a;
+      --amber-soft: #fff5e8;
+      --red: #ff453a;
+      --red-soft: #fff0ef;
+      --violet: #6e5cf6;
+      --violet-soft: #f1efff;
+      --teal: #30b0c7;
+      --teal-soft: #eaf8fb;
+      --slate: #5e6876;
+      --slate-soft: #f1f4f8;
+      --shadow: 0 28px 60px rgba(0, 0, 0, 0.08);
+      --shadow-soft: 0 10px 24px rgba(0, 0, 0, 0.05);
+      --radius-xl: 30px;
+      --radius-lg: 24px;
+      --radius-md: 18px;
+      --radius-sm: 14px;
+      --nav-h: 72px;
+    }
+
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body {
+      margin: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", "Segoe UI", sans-serif;
+      color: var(--ink);
+      background:
+        radial-gradient(circle at top left, rgba(0,113,227,0.09), transparent 24%),
+        radial-gradient(circle at top right, rgba(110,92,246,0.07), transparent 22%),
+        linear-gradient(180deg, #fbfbfd 0%, #f5f5f7 42%, #f8f8fa 100%);
+      line-height: 1.68;
+      letter-spacing: -0.011em;
+    }
+
+    a { color: inherit; text-decoration: none; }
+    button, input, code, .mono { font-family: "SFMono-Regular", Consolas, monospace; }
+
+    .shell {
+      width: min(1180px, calc(100vw - 36px));
+      margin: 0 auto;
+    }
+
+    .hero {
+      padding: 88px 0 60px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .hero::before,
+    .hero::after {
+      content: "";
+      position: absolute;
+      border-radius: 999px;
+      filter: blur(28px);
+      pointer-events: none;
+      opacity: 0.55;
+    }
+
+    .hero::before {
+      width: 360px;
+      height: 360px;
+      left: -60px;
+      top: -80px;
+      background: radial-gradient(circle, rgba(0,113,227,0.18), transparent 72%);
+    }
+
+    .hero::after {
+      width: 320px;
+      height: 320px;
+      right: -30px;
+      top: 20px;
+      background: radial-gradient(circle, rgba(110,92,246,0.16), transparent 70%);
+    }
+
+    .eyebrow {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 14px;
+      border-radius: 999px;
+      background: rgba(255,255,255,0.82);
+      border: 1px solid rgba(0,0,0,0.08);
+      color: var(--blue);
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      box-shadow: var(--shadow-soft);
+      backdrop-filter: blur(18px);
+    }
+
+    h1 {
+      margin: 18px 0 16px;
+      max-width: 980px;
+      font-size: clamp(3rem, 7vw, 5.8rem);
+      line-height: 0.92;
+      letter-spacing: -0.058em;
+    }
+
+    .hero .lead {
+      max-width: 860px;
+      margin: 0;
+      font-size: 1.15rem;
+      color: var(--muted);
+    }
+
+    .hero-grid {
+      display: grid;
+      grid-template-columns: 1.15fr 0.85fr;
+      gap: 20px;
+      margin-top: 34px;
+      align-items: start;
+    }
+
+    .glass {
+      background: rgba(255,255,255,0.83);
+      border: 1px solid rgba(255,255,255,0.72);
+      border-radius: var(--radius-xl);
+      backdrop-filter: blur(22px) saturate(150%);
+      box-shadow: var(--shadow);
+      padding: 28px;
+    }
+
+    .glass h3,
+    .card h3 {
+      margin: 0 0 10px;
+      font-size: 1.04rem;
+      letter-spacing: -0.02em;
+    }
+
+    .glass p,
+    .card p {
+      margin: 0;
+      color: var(--muted);
+      font-size: 0.98rem;
+    }
+
+    .pill-row {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin-top: 18px;
+    }
+
+    .pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 12px;
+      border-radius: 999px;
+      font-size: 0.82rem;
+      font-weight: 700;
+      border: 1px solid transparent;
+    }
+
+    .pill.blue { background: var(--blue-soft); color: var(--blue); border-color: rgba(0,113,227,0.16); }
+    .pill.green { background: var(--green-soft); color: #187f3d; border-color: rgba(52,199,89,0.16); }
+    .pill.amber { background: var(--amber-soft); color: #a86000; border-color: rgba(255,159,10,0.18); }
+    .pill.violet { background: var(--violet-soft); color: #5644de; border-color: rgba(110,92,246,0.18); }
+    .pill.teal { background: var(--teal-soft); color: #117b8e; border-color: rgba(48,176,199,0.18); }
+    .pill.red { background: var(--red-soft); color: #b12a23; border-color: rgba(255,69,58,0.18); }
+    .pill.slate { background: var(--slate-soft); color: #43505f; border-color: rgba(94,104,118,0.18); }
+
+    .nav {
+      position: sticky;
+      top: 0;
+      z-index: 40;
+      height: var(--nav-h);
+      display: flex;
+      align-items: center;
+      background: rgba(255,255,255,0.78);
+      backdrop-filter: blur(24px) saturate(150%);
+      border-top: 1px solid rgba(255,255,255,0.68);
+      border-bottom: 1px solid rgba(0,0,0,0.06);
+    }
+
+    .nav-inner {
+      width: min(1180px, calc(100vw - 36px));
+      margin: 0 auto;
+      display: flex;
+      gap: 18px;
+      overflow-x: auto;
+      scrollbar-width: none;
+    }
+
+    .nav-inner::-webkit-scrollbar { display: none; }
+
+    .nav a {
+      white-space: nowrap;
+      font-size: 0.92rem;
+      font-weight: 600;
+      color: var(--muted);
+      padding: 10px 0;
+      border-bottom: 2px solid transparent;
+    }
+
+    .nav a.active,
+    .nav a:hover {
+      color: var(--ink);
+      border-bottom-color: var(--ink);
+    }
+
+    main.shell { padding: 48px 0 100px; }
+
+    .section {
+      margin-top: 58px;
+      scroll-margin-top: 96px;
+    }
+
+    .section-header {
+      display: flex;
+      gap: 18px;
+      align-items: flex-start;
+      margin-bottom: 24px;
+    }
+
+    .section-index {
+      width: 46px;
+      height: 46px;
+      border-radius: 16px;
+      display: grid;
+      place-items: center;
+      background: rgba(255,255,255,0.9);
+      color: var(--blue);
+      border: 1px solid rgba(0,0,0,0.06);
+      font-weight: 700;
+      box-shadow: var(--shadow-soft);
+      flex-shrink: 0;
+    }
+
+    .section-header h2 {
+      margin: 0;
+      font-size: clamp(2rem, 4vw, 3rem);
+      line-height: 1;
+      letter-spacing: -0.045em;
+    }
+
+    .section-header p {
+      margin: 8px 0 0;
+      max-width: 860px;
+      color: var(--muted);
+      font-size: 1rem;
+    }
+
+    .card {
+      background: var(--card-solid);
+      border: 1px solid var(--line);
+      border-radius: var(--radius-lg);
+      box-shadow: var(--shadow-soft);
+      padding: 28px;
+    }
+
+    .card + .card { margin-top: 18px; }
+
+    .grid-2 {
+      display: grid;
+      grid-template-columns: 1.02fr 0.98fr;
+      gap: 18px;
+    }
+
+    .grid-3 {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 16px;
+    }
+
+    .metric-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 14px;
+      margin-top: 18px;
+    }
+
+    .metric {
+      padding: 16px 18px;
+      border-radius: 18px;
+      border: 1px solid var(--line);
+      background: linear-gradient(180deg, #ffffff, #fafafd);
+    }
+
+    .metric strong {
+      display: block;
+      font-size: 1.6rem;
+      letter-spacing: -0.05em;
+      margin-bottom: 4px;
+    }
+
+    .metric span {
+      color: var(--muted);
+      font-size: 0.92rem;
+    }
+
+    .note-list,
+    .step-list,
+    .harm-list,
+    .check-list {
+      display: grid;
+      gap: 12px;
+      margin-top: 16px;
+    }
+
+    .note,
+    .step,
+    .harm-item,
+    .check-item {
+      display: flex;
+      gap: 14px;
+      align-items: flex-start;
+      padding: 14px 16px;
+      background: #fafafd;
+      border: 1px solid var(--line);
+      border-radius: 18px;
+    }
+
+    .dot-num {
+      width: 28px;
+      height: 28px;
+      border-radius: 999px;
+      background: var(--blue);
+      color: #fff;
+      display: grid;
+      place-items: center;
+      font-size: 0.8rem;
+      font-weight: 700;
+      flex-shrink: 0;
+    }
+
+    .note strong,
+    .step strong,
+    .harm-item strong,
+    .check-item strong {
+      display: block;
+      font-size: 0.96rem;
+      margin-bottom: 4px;
+    }
+
+    .note span,
+    .step span,
+    .harm-item span,
+    .check-item span {
+      color: var(--muted);
+      font-size: 0.94rem;
+    }
+
+    .compare-card {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 14px;
+      margin-top: 18px;
+    }
+
+    .compare-block {
+      padding: 18px;
+      border-radius: 20px;
+      border: 1px solid var(--line);
+      background: linear-gradient(180deg, #ffffff, #fafafd);
+    }
+
+    .compare-block h4 {
+      margin: 0 0 10px;
+      font-size: 0.98rem;
+      letter-spacing: -0.02em;
+    }
+
+    .compare-block p {
+      color: var(--muted);
+      font-size: 0.93rem;
+    }
+
+    .compare-block.bad {
+      background: linear-gradient(180deg, #fff8f7, #fff2f1);
+      border-color: rgba(255,69,58,0.16);
+    }
+
+    .compare-block.good {
+      background: linear-gradient(180deg, #f7fbff, #eff6ff);
+      border-color: rgba(0,113,227,0.16);
+    }
+
+    .visual-board {
+      border-radius: 24px;
+      border: 1px solid var(--line);
+      background: linear-gradient(180deg, #ffffff, #fafafd);
+      padding: 22px;
+      box-shadow: var(--shadow-soft);
+    }
+
+    .visual-board h3 {
+      margin: 0 0 10px;
+      font-size: 1rem;
+    }
+
+    .visual-board p {
+      margin: 0 0 14px;
+      color: var(--muted);
+      font-size: 0.94rem;
+    }
+
+    .spotlight-card {
+      background:
+        radial-gradient(circle at top right, rgba(0,113,227,0.08), transparent 28%),
+        linear-gradient(180deg, #ffffff, #fafafd);
+      border: 1px solid var(--line);
+      border-radius: 28px;
+      box-shadow: var(--shadow-soft);
+      padding: 26px;
+    }
+
+    .spotlight-card h3 {
+      margin: 0 0 10px;
+      font-size: 1.08rem;
+      letter-spacing: -0.02em;
+    }
+
+    .spotlight-card p {
+      margin: 0;
+      color: var(--muted);
+      font-size: 0.96rem;
+    }
+
+    .spotlight-grid {
+      display: grid;
+      grid-template-columns: 1.1fr 0.9fr;
+      gap: 18px;
+      margin-top: 18px;
+    }
+
+    .mini-kpi-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 12px;
+      margin-top: 14px;
+    }
+
+    .mini-kpi {
+      padding: 14px;
+      border-radius: 16px;
+      border: 1px solid var(--line);
+      background: #fff;
+    }
+
+    .mini-kpi strong {
+      display: block;
+      margin-bottom: 6px;
+      font-size: 0.9rem;
+    }
+
+    .mini-kpi span {
+      color: var(--muted);
+      font-size: 0.86rem;
+    }
+
+    .harm-chip-grid {
+      display: grid;
+      gap: 10px;
+      margin-top: 16px;
+    }
+
+    .harm-chip {
+      display: flex;
+      gap: 12px;
+      align-items: flex-start;
+      padding: 12px 14px;
+      border-radius: 16px;
+      border: 1px solid var(--line);
+      background: #fff;
+    }
+
+    .harm-chip strong {
+      display: block;
+      margin-bottom: 4px;
+      font-size: 0.92rem;
+    }
+
+    .harm-chip span {
+      color: var(--muted);
+      font-size: 0.88rem;
+    }
+
+    .harm-dot {
+      width: 14px;
+      height: 14px;
+      border-radius: 999px;
+      margin-top: 4px;
+      flex-shrink: 0;
+    }
+
+    .case-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 14px;
+      margin-top: 18px;
+    }
+
+    .case-card {
+      padding: 18px;
+      border-radius: 20px;
+      border: 1px solid var(--line);
+      background: linear-gradient(180deg, #ffffff, #fafafd);
+    }
+
+    .case-card h4 {
+      margin: 0 0 8px;
+      font-size: 0.98rem;
+      letter-spacing: -0.02em;
+    }
+
+    .case-card p {
+      margin: 0;
+      color: var(--muted);
+      font-size: 0.91rem;
+    }
+
+    .case-card .case-label {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 10px;
+      padding: 6px 10px;
+      border-radius: 999px;
+      font-size: 0.76rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+    }
+
+    .summary-strip {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 14px;
+      margin-top: 18px;
+    }
+
+    .summary-card {
+      padding: 18px;
+      border-radius: 20px;
+      border: 1px solid var(--line);
+      background: linear-gradient(180deg, #ffffff, #fafafd);
+      box-shadow: var(--shadow-soft);
+    }
+
+    .summary-card h4 {
+      margin: 0 0 8px;
+      font-size: 0.98rem;
+      letter-spacing: -0.02em;
+    }
+
+    .summary-card p {
+      margin: 0;
+      color: var(--muted);
+      font-size: 0.9rem;
+    }
+
+    .full-bleed-visual {
+      margin-top: 18px;
+    }
+
+    .editorial-intro {
+      margin-top: 18px;
+      padding: 18px 20px;
+      border-radius: 20px;
+      border: 1px solid var(--line);
+      background: linear-gradient(180deg, #ffffff, #fafafd);
+      display: grid;
+      gap: 8px;
+    }
+
+    .editorial-kicker {
+      font-size: 0.76rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--blue);
+    }
+
+    .editorial-title {
+      font-size: 1.45rem;
+      line-height: 1.12;
+      letter-spacing: -0.03em;
+      font-weight: 700;
+      color: var(--ink);
+      max-width: 760px;
+    }
+
+    .editorial-copy {
+      color: var(--muted);
+      font-size: 0.96rem;
+      max-width: 840px;
+    }
+
+    .editorial-strip {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 16px;
+      margin-top: 18px;
+    }
+
+    .editorial-card {
+      padding: 20px;
+      border-radius: 22px;
+      border: 1px solid var(--line);
+      background: linear-gradient(180deg, #ffffff, #fafafd);
+      box-shadow: var(--shadow-soft);
+      display: grid;
+      gap: 10px;
+    }
+
+    .editorial-card .num {
+      width: 28px;
+      height: 28px;
+      border-radius: 999px;
+      display: grid;
+      place-items: center;
+      font-size: 0.8rem;
+      font-weight: 700;
+      color: #fff;
+    }
+
+    .editorial-card h4 {
+      margin: 0;
+      font-size: 1.04rem;
+      line-height: 1.15;
+      letter-spacing: -0.02em;
+    }
+
+    .editorial-card p {
+      margin: 0;
+      color: var(--muted);
+      font-size: 0.92rem;
+    }
+
+    .editorial-case {
+      margin-top: 4px;
+      padding-top: 10px;
+      border-top: 1px solid rgba(0,0,0,0.06);
+    }
+
+    .editorial-case strong {
+      display: block;
+      margin-bottom: 5px;
+      font-size: 0.86rem;
+      letter-spacing: -0.01em;
+    }
+
+    .editorial-case span {
+      color: var(--muted);
+      font-size: 0.88rem;
+      line-height: 1.6;
+    }
+
+    .editorial-footer {
+      margin-top: 16px;
+      padding: 14px 16px;
+      border-radius: 18px;
+      background: linear-gradient(180deg, #f7fbff, #eff6ff);
+      border: 1px solid rgba(0,113,227,0.16);
+      color: #1b4271;
+      font-size: 0.92rem;
+    }
+
+    .legacy-data-collection { display: none !important; }
+
+    .dc-story {
+      position: relative;
+      margin-top: 24px;
+      overflow: hidden;
+      border: 1px solid rgba(18, 55, 104, 0.12);
+      border-radius: 34px;
+      background:
+        radial-gradient(circle at 88% 4%, rgba(65, 132, 255, 0.16), transparent 25%),
+        linear-gradient(145deg, #f8fbff 0%, #ffffff 43%, #f6f9fd 100%);
+      box-shadow: 0 30px 80px rgba(24, 55, 92, 0.12);
+    }
+
+    .dc-story::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      background-image:
+        linear-gradient(rgba(34, 79, 132, 0.035) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(34, 79, 132, 0.035) 1px, transparent 1px);
+      background-size: 32px 32px;
+      mask-image: linear-gradient(to bottom, #000, transparent 58%);
+    }
+
+    .dc-hero {
+      position: relative;
+      display: grid;
+      grid-template-columns: minmax(0, 1.25fr) minmax(280px, 0.75fr);
+      gap: 54px;
+      align-items: end;
+      padding: 56px 60px 42px;
+    }
+
+    .dc-kicker {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 22px;
+      color: #175fc1;
+      font-size: 0.76rem;
+      font-weight: 800;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+    }
+
+    .dc-kicker::before {
+      content: "";
+      width: 34px;
+      height: 3px;
+      border-radius: 99px;
+      background: #2478e8;
+    }
+
+    .dc-hero h3 {
+      max-width: 780px;
+      margin: 0;
+      color: #10233e;
+      font-size: clamp(2.3rem, 4.4vw, 4.5rem);
+      line-height: 0.98;
+      letter-spacing: -0.065em;
+    }
+
+    .dc-hero h3 span {
+      display: block;
+      color: #2478e8;
+    }
+
+    .dc-hero-copy {
+      padding-left: 24px;
+      border-left: 2px solid rgba(36, 120, 232, 0.3);
+    }
+
+    .dc-hero-copy p {
+      margin: 0;
+      color: #52647a;
+      font-size: 1.02rem;
+      line-height: 1.75;
+    }
+
+    .dc-hero-copy strong { color: #10233e; }
+
+    .dc-figure {
+      position: relative;
+      margin: 0 28px;
+      overflow-x: auto;
+      border: 1px solid rgba(27, 63, 108, 0.13);
+      border-radius: 26px;
+      background: rgba(255, 255, 255, 0.92);
+      box-shadow: 0 18px 50px rgba(28, 64, 108, 0.09);
+      scrollbar-width: thin;
+    }
+
+    .dc-figure svg { min-width: 900px; }
+
+    .dc-cases {
+      position: relative;
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      margin: 46px 60px 0;
+      border-top: 1px solid rgba(20, 55, 96, 0.16);
+      border-bottom: 1px solid rgba(20, 55, 96, 0.16);
+    }
+
+    .dc-case {
+      min-width: 0;
+      padding: 30px 34px 32px 0;
+    }
+
+    .dc-case + .dc-case {
+      padding-left: 34px;
+      border-left: 1px solid rgba(20, 55, 96, 0.16);
+    }
+
+    .dc-case-no {
+      display: block;
+      margin-bottom: 20px;
+      color: #2478e8;
+      font-size: 0.78rem;
+      font-weight: 800;
+      letter-spacing: 0.14em;
+    }
+
+    .dc-case h4 {
+      margin: 0 0 11px;
+      color: #10233e;
+      font-size: 1.22rem;
+      letter-spacing: -0.025em;
+    }
+
+    .dc-case p {
+      margin: 0;
+      color: #5a6a7e;
+      font-size: 0.93rem;
+      line-height: 1.68;
+    }
+
+    .dc-case-example {
+      display: block;
+      margin-top: 17px;
+      color: #263d5b;
+      font-size: 0.88rem;
+      line-height: 1.6;
+    }
+
+    .dc-case-example strong { color: #10233e; }
+
+    .dc-harm {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      margin-top: 18px;
+      color: #52647a;
+      font-size: 0.74rem;
+      font-weight: 800;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+    }
+
+    .dc-harm::before {
+      content: "";
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--harm-color, #2478e8);
+      box-shadow: 0 0 0 5px color-mix(in srgb, var(--harm-color, #2478e8) 13%, transparent);
+    }
+
+    .dc-populations {
+      position: relative;
+      display: grid;
+      grid-template-columns: 0.75fr 1.25fr;
+      gap: 48px;
+      align-items: center;
+      padding: 44px 60px 50px;
+    }
+
+    .dc-populations h4 {
+      margin: 0 0 11px;
+      color: #10233e;
+      font-size: 1.35rem;
+      letter-spacing: -0.03em;
+    }
+
+    .dc-populations p {
+      margin: 0;
+      color: #5a6a7e;
+      font-size: 0.94rem;
+      line-height: 1.7;
+    }
+
+    .dc-pop-line {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      min-width: 0;
+    }
+
+    .dc-pop-node {
+      position: relative;
+      padding-top: 31px;
+      color: #66768a;
+      font-size: 0.75rem;
+      line-height: 1.35;
+    }
+
+    .dc-pop-node::before {
+      content: "";
+      position: absolute;
+      top: 4px;
+      left: 0;
+      width: 15px;
+      height: 15px;
+      border: 4px solid #fff;
+      border-radius: 50%;
+      background: var(--node, #2478e8);
+      box-shadow: 0 0 0 1px rgba(26, 62, 106, 0.15);
+      z-index: 2;
+    }
+
+    .dc-pop-node:not(:last-child)::after {
+      content: "";
+      position: absolute;
+      top: 13px;
+      left: 15px;
+      width: calc(100% - 15px);
+      height: 2px;
+      background: linear-gradient(90deg, var(--node, #2478e8), rgba(102, 124, 151, 0.25));
+    }
+
+    .dc-pop-node strong {
+      display: block;
+      margin-bottom: 5px;
+      color: #10233e;
+      font-size: 0.86rem;
+    }
+
+    .svg-wrap {
+      width: 100%;
+      overflow: hidden;
+      border-radius: 18px;
+      border: 1px solid rgba(0,0,0,0.05);
+      background:
+        linear-gradient(180deg, rgba(255,255,255,0.96), rgba(248,249,252,0.96)),
+        radial-gradient(circle at top right, rgba(0,113,227,0.06), transparent 36%);
+    }
+
+    svg { display: block; width: 100%; height: auto; }
+
+    .stage-grid {
+      display: grid;
+      grid-template-columns: repeat(6, minmax(150px, 1fr));
+      gap: 12px;
+      margin-top: 18px;
+    }
+
+    .stage-card {
+      padding: 16px;
+      border-radius: 20px;
+      border: 1px solid var(--line);
+      background: linear-gradient(180deg, #ffffff, #fafafd);
+      cursor: pointer;
+      transition: transform .18s ease, box-shadow .18s ease, border-color .18s ease;
+    }
+
+    .stage-card:hover,
+    .stage-card.active {
+      transform: translateY(-2px);
+      box-shadow: var(--shadow-soft);
+      border-color: rgba(0,113,227,0.18);
+    }
+
+    .stage-card strong {
+      display: block;
+      font-size: 0.94rem;
+      margin-bottom: 6px;
+    }
+
+    .stage-card span {
+      color: var(--muted);
+      font-size: 0.88rem;
+      display: block;
+    }
+
+    .stage-detail {
+      margin-top: 16px;
+      padding: 18px;
+      border-radius: 20px;
+      background: #fafafd;
+      border: 1px solid var(--line);
+    }
+
+    .stage-detail h4 {
+      margin: 0 0 8px;
+      font-size: 1rem;
+    }
+
+    .stage-detail p {
+      margin: 0 0 12px;
+      color: var(--muted);
+      font-size: 0.94rem;
+    }
+
+    .detail-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 12px;
+    }
+
+    .detail-card {
+      padding: 14px;
+      border-radius: 16px;
+      background: #fff;
+      border: 1px solid var(--line);
+    }
+
+    .detail-card strong {
+      display: block;
+      margin-bottom: 5px;
+      font-size: 0.9rem;
+    }
+
+    .detail-card span {
+      color: var(--muted);
+      font-size: 0.88rem;
+    }
+
+    .bias-map {
+      display: grid;
+      grid-template-columns: repeat(7, minmax(0, 1fr));
+      gap: 12px;
+      margin-top: 18px;
+    }
+
+    .bias-tag {
+      padding: 14px 12px;
+      border-radius: 18px;
+      border: 1px solid var(--line);
+      background: linear-gradient(180deg, #ffffff, #fafafd);
+      text-align: center;
+    }
+
+    .bias-tag strong {
+      display: block;
+      font-size: 0.9rem;
+      margin-bottom: 4px;
+    }
+
+    .bias-tag span {
+      color: var(--muted);
+      font-size: 0.82rem;
+    }
+
+    .source-grid {
+      display: grid;
+      gap: 34px;
+      margin-top: 34px;
+    }
+
+    .evidence-card {
+      --accent: #2478e8;
+      --accent-soft: #edf5ff;
+      position: relative;
+      overflow: hidden;
+      border: 1px solid rgba(17, 48, 86, 0.12);
+      border-radius: 32px;
+      background: #fff;
+      box-shadow: 0 24px 70px rgba(25, 54, 90, 0.1);
+    }
+
+    .evidence-card::before {
+      content: "";
+      position: absolute;
+      inset: 0 0 auto;
+      height: 5px;
+      background: var(--accent);
+    }
+
+    .evidence-layout {
+      display: grid;
+      grid-template-columns: minmax(300px, 0.78fr) minmax(480px, 1.22fr);
+      min-height: 560px;
+    }
+
+    .evidence-copy {
+      position: relative;
+      z-index: 1;
+      padding: 46px 42px 40px;
+      border-right: 1px solid rgba(17, 48, 86, 0.1);
+      background:
+        radial-gradient(circle at 0 0, color-mix(in srgb, var(--accent) 12%, transparent), transparent 38%),
+        linear-gradient(160deg, #fff, #fbfcfe);
+    }
+
+    .evidence-number {
+      display: block;
+      margin-bottom: 34px;
+      color: var(--accent);
+      font-size: 0.78rem;
+      font-weight: 850;
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+    }
+
+    .evidence-copy h3 {
+      margin: 0;
+      color: #112640;
+      font-size: clamp(2rem, 3vw, 3.25rem);
+      line-height: 1;
+      letter-spacing: -0.055em;
+    }
+
+    .evidence-definition {
+      margin: 18px 0 0;
+      color: #52657c;
+      font-size: 1rem;
+      line-height: 1.72;
+    }
+
+    .evidence-entry {
+      margin-top: 26px;
+      padding-top: 22px;
+      border-top: 1px solid rgba(17, 48, 86, 0.11);
+    }
+
+    .evidence-entry span {
+      display: block;
+      margin-bottom: 6px;
+      color: var(--accent);
+      font-size: 0.71rem;
+      font-weight: 850;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+    }
+
+    .evidence-entry p {
+      margin: 0;
+      color: #2c435f;
+      font-size: 0.91rem;
+      line-height: 1.62;
+    }
+
+    .evidence-takeaway {
+      margin-top: 24px;
+      padding: 17px 18px;
+      border-left: 3px solid var(--accent);
+      background: var(--accent-soft);
+      color: #263f5d;
+      font-size: 0.88rem;
+      line-height: 1.6;
+    }
+
+    .evidence-viz {
+      position: relative;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      min-width: 0;
+      padding: 42px;
+      background:
+        linear-gradient(rgba(37, 75, 120, 0.035) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(37, 75, 120, 0.035) 1px, transparent 1px),
+        #f8fbfe;
+      background-size: 28px 28px;
+    }
+
+    .study-label {
+      display: flex;
+      justify-content: space-between;
+      gap: 20px;
+      align-items: flex-start;
+      margin-bottom: 30px;
+    }
+
+    .study-label span {
+      color: var(--accent);
+      font-size: 0.72rem;
+      font-weight: 850;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+    }
+
+    .study-label strong {
+      max-width: 460px;
+      color: #18304e;
+      font-size: 0.9rem;
+      line-height: 1.45;
+      text-align: right;
+    }
+
+    .viz-title {
+      margin: 0;
+      color: #10243f;
+      font-size: 1.5rem;
+      line-height: 1.16;
+      letter-spacing: -0.035em;
+    }
+
+    .viz-subtitle {
+      margin: 8px 0 24px;
+      color: #66788c;
+      font-size: 0.86rem;
+    }
+
+    .viz-canvas {
+      position: relative;
+      flex: 1;
+      min-height: 300px;
+      overflow: hidden;
+      border: 1px solid rgba(20, 56, 99, 0.11);
+      border-radius: 22px;
+      background: rgba(255, 255, 255, 0.88);
+      box-shadow: 0 16px 40px rgba(23, 54, 91, 0.08);
+    }
+
+    .study-source {
+      display: flex;
+      justify-content: space-between;
+      gap: 20px;
+      align-items: center;
+      margin-top: 20px;
+      color: #718196;
+      font-size: 0.75rem;
+      line-height: 1.45;
+    }
+
+    .study-source a {
+      flex: 0 0 auto;
+      color: var(--accent);
+      font-weight: 800;
+    }
+
+    .case-toggle {
+      width: calc(100% - 84px);
+      margin: 0 42px 34px;
+      padding: 16px 20px;
+      border: 1px solid color-mix(in srgb, var(--accent) 35%, #d7e0ea);
+      border-radius: 14px;
+      background: var(--accent-soft);
+      color: #17324f;
+      font-size: 0.86rem;
+      font-weight: 820;
+      cursor: pointer;
+      transition: transform 180ms ease, box-shadow 180ms ease;
+    }
+
+    .case-toggle:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 10px 24px color-mix(in srgb, var(--accent) 16%, transparent);
+    }
+
+    .case-toggle::after {
+      content: "↓";
+      margin-left: 10px;
+      color: var(--accent);
+    }
+
+    .case-toggle[aria-expanded="true"]::after { content: "↑"; }
+
+    .case-file {
+      border-top: 1px solid rgba(17, 48, 86, 0.11);
+      background: #fff;
+    }
+
+    .case-file[hidden] { display: none; }
+
+    .case-tabs {
+      display: flex;
+      gap: 8px;
+      overflow-x: auto;
+      padding: 22px 34px 0;
+      scrollbar-width: thin;
+    }
+
+    .case-tab {
+      flex: 0 0 auto;
+      padding: 10px 14px;
+      border: 0;
+      border-radius: 999px;
+      background: #f0f4f8;
+      color: #5b6d81;
+      font-size: 0.75rem;
+      font-weight: 800;
+      cursor: pointer;
+    }
+
+    .case-tab[aria-selected="true"] {
+      background: var(--accent);
+      color: #fff;
+    }
+
+    .case-panel {
+      padding: 32px 42px 42px;
+    }
+
+    .case-panel[hidden] { display: none; }
+
+    .case-story-grid,
+    .case-study-grid {
+      display: grid;
+      grid-template-columns: 1.2fr 0.8fr;
+      gap: 26px;
+    }
+
+    .case-prose h4,
+    .case-panel > h4 {
+      margin: 0 0 12px;
+      color: #132d4a;
+      font-size: 1.35rem;
+      letter-spacing: -0.03em;
+    }
+
+    .case-prose p {
+      margin: 0 0 14px;
+      color: #4f6278;
+      font-size: 0.94rem;
+      line-height: 1.75;
+    }
+
+    .truth-box {
+      padding: 22px;
+      border-left: 4px solid var(--accent);
+      background: var(--accent-soft);
+    }
+
+    .truth-box span {
+      display: block;
+      margin-bottom: 8px;
+      color: var(--accent);
+      font-size: 0.7rem;
+      font-weight: 850;
+      letter-spacing: 0.11em;
+      text-transform: uppercase;
+    }
+
+    .truth-box strong {
+      color: #193552;
+      font-size: 1.03rem;
+      line-height: 1.55;
+    }
+
+    .fact-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 12px;
+    }
+
+    .fact-card {
+      padding: 17px;
+      border: 1px solid rgba(17, 48, 86, 0.1);
+      border-radius: 14px;
+      background: #f9fbfd;
+    }
+
+    .fact-card span {
+      display: block;
+      margin-bottom: 6px;
+      color: var(--accent);
+      font-size: 0.67rem;
+      font-weight: 850;
+      letter-spacing: 0.09em;
+      text-transform: uppercase;
+    }
+
+    .fact-card strong {
+      color: #203b58;
+      font-size: 0.88rem;
+      line-height: 1.5;
+    }
+
+    .citation-box {
+      padding: 22px;
+      border-radius: 16px;
+      background: #122c4b;
+      color: #dce7f3;
+    }
+
+    .citation-box span {
+      display: block;
+      margin-bottom: 9px;
+      color: #8fc0ff;
+      font-size: 0.69rem;
+      font-weight: 850;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+    }
+
+    .citation-box cite {
+      display: block;
+      font-size: 0.83rem;
+      font-style: normal;
+      line-height: 1.65;
+    }
+
+    .citation-box a {
+      display: inline-block;
+      margin-top: 14px;
+      color: #fff;
+      font-size: 0.78rem;
+      font-weight: 800;
+    }
+
+    .mechanism-chain {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 10px;
+      margin-top: 22px;
+    }
+
+    .mechanism-step {
+      position: relative;
+      padding: 18px 16px;
+      border-top: 3px solid var(--accent);
+      background: #f7fafc;
+      color: #3f556d;
+      font-size: 0.82rem;
+      line-height: 1.55;
+    }
+
+    .mechanism-step b {
+      display: block;
+      margin-bottom: 7px;
+      color: var(--accent);
+      font-size: 0.7rem;
+      letter-spacing: 0.08em;
+    }
+
+    .diagnostic-note {
+      margin-top: 22px;
+      padding: 18px;
+      border: 1px dashed color-mix(in srgb, var(--accent) 45%, #ced9e5);
+      color: #3d536b;
+      font-size: 0.88rem;
+      line-height: 1.65;
+    }
+
+    .scenario-box {
+      max-width: 840px;
+    }
+
+    .scenario-box > p {
+      color: #40566e;
+      font-size: 1rem;
+      line-height: 1.7;
+    }
+
+    .scenario-options {
+      display: grid;
+      gap: 10px;
+      margin-top: 20px;
+    }
+
+    .scenario-option {
+      padding: 15px 17px;
+      border: 1px solid rgba(17, 48, 86, 0.13);
+      border-radius: 12px;
+      background: #fff;
+      color: #29435f;
+      font-size: 0.86rem;
+      font-weight: 720;
+      text-align: left;
+      cursor: pointer;
+    }
+
+    .scenario-option:hover { border-color: var(--accent); }
+    .scenario-option.correct { border-color: #258b58; background: #ebf8f1; color: #19693f; }
+    .scenario-option.wrong { border-color: #d95d49; background: #fff0ec; color: #983e31; }
+
+    .scenario-feedback {
+      margin-top: 16px;
+      padding: 16px 18px;
+      border-radius: 12px;
+      background: #f1f5f9;
+      color: #3d536b;
+      font-size: 0.86rem;
+      line-height: 1.65;
+    }
+
+    .limit-list {
+      display: grid;
+      gap: 12px;
+      margin: 20px 0 0;
+      padding: 0;
+      list-style: none;
+    }
+
+    .limit-list li {
+      padding: 15px 17px 15px 44px;
+      position: relative;
+      border-bottom: 1px solid rgba(17, 48, 86, 0.1);
+      color: #465b72;
+      font-size: 0.88rem;
+      line-height: 1.65;
+    }
+
+    .limit-list li::before {
+      content: "!";
+      position: absolute;
+      left: 10px;
+      top: 16px;
+      width: 22px;
+      height: 22px;
+      display: grid;
+      place-items: center;
+      border-radius: 50%;
+      background: var(--accent-soft);
+      color: var(--accent);
+      font-weight: 900;
+    }
+
+    .stat-pill {
+      display: inline-flex;
+      align-items: baseline;
+      gap: 6px;
+      color: #10243f;
+      font-size: 0.82rem;
+      font-weight: 750;
+    }
+
+    .stat-pill b {
+      color: var(--accent);
+      font-size: 2rem;
+      letter-spacing: -0.05em;
+    }
+
+    .semantic-field {
+      display: grid;
+      grid-template-columns: 1fr 90px 1fr;
+      gap: 12px;
+      align-items: center;
+      height: 100%;
+      padding: 30px;
+    }
+
+    .word-cluster {
+      display: flex;
+      gap: 9px;
+      flex-wrap: wrap;
+      align-content: center;
+    }
+
+    .word-chip {
+      padding: 8px 11px;
+      border-radius: 8px;
+      background: #edf4fc;
+      color: #31506f;
+      font-size: 0.75rem;
+      font-weight: 750;
+    }
+
+    .word-cluster.hot .word-chip {
+      background: #fff0ec;
+      color: #9a3d30;
+    }
+
+    .semantic-score {
+      text-align: center;
+    }
+
+    .semantic-score strong {
+      display: block;
+      color: var(--accent);
+      font-size: 3.4rem;
+      line-height: 1;
+      letter-spacing: -0.07em;
+    }
+
+    .semantic-score span {
+      color: #718196;
+      font-size: 0.69rem;
+      font-weight: 800;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+
+    .geo-viz {
+      display: grid;
+      grid-template-columns: 1fr 0.82fr;
+      gap: 28px;
+      height: 100%;
+      padding: 28px;
+      align-items: center;
+    }
+
+    .dot-map {
+      position: relative;
+      min-height: 220px;
+      border-radius: 46% 54% 48% 52%;
+      background: #edf4fb;
+      clip-path: polygon(4% 32%, 18% 14%, 38% 19%, 48% 8%, 66% 19%, 91% 14%, 98% 40%, 84% 55%, 73% 82%, 49% 72%, 36% 91%, 17% 74%, 8% 57%);
+    }
+
+    .map-dot {
+      position: absolute;
+      width: var(--size);
+      height: var(--size);
+      left: var(--x);
+      top: var(--y);
+      border: 4px solid #fff;
+      border-radius: 50%;
+      background: var(--accent);
+      box-shadow: 0 7px 18px rgba(25, 74, 131, 0.2);
+    }
+
+    .map-dot.muted {
+      border-width: 2px;
+      background: #b8c8d9;
+      box-shadow: none;
+    }
+
+    .bar-list { display: grid; gap: 18px; }
+
+    .bar-row {
+      display: grid;
+      grid-template-columns: 92px 1fr 46px;
+      gap: 10px;
+      align-items: center;
+      color: #405873;
+      font-size: 0.76rem;
+      font-weight: 750;
+    }
+
+    .bar-track {
+      height: 10px;
+      overflow: hidden;
+      border-radius: 99px;
+      background: #e7edf4;
+    }
+
+    .bar-fill {
+      height: 100%;
+      width: var(--value);
+      border-radius: inherit;
+      background: var(--bar, var(--accent));
+    }
+
+    .proxy-viz {
+      display: grid;
+      grid-template-columns: 1fr 56px 1fr;
+      gap: 16px;
+      align-items: center;
+      height: 100%;
+      padding: 30px;
+    }
+
+    .proxy-box {
+      padding: 22px;
+      border-radius: 16px;
+      background: #f0f6fd;
+      color: #274563;
+      text-align: center;
+    }
+
+    .proxy-box.wrong { background: #fff0ec; color: #923d32; }
+    .proxy-box strong { display: block; font-size: 1.05rem; }
+    .proxy-box span { display: block; margin-top: 5px; font-size: 0.73rem; }
+    .proxy-arrow { color: #8a9bad; font-size: 2rem; text-align: center; }
+
+    .selection-bars {
+      grid-column: 1 / -1;
+      display: grid;
+      gap: 13px;
+      margin-top: 8px;
+    }
+
+    .wer-viz,
+    .privacy-viz,
+    .error-matrix,
+    .deployment-viz {
+      height: 100%;
+      padding: 30px;
+    }
+
+    .wave-row {
+      display: grid;
+      grid-template-columns: 78px 1fr 60px;
+      gap: 12px;
+      align-items: center;
+      margin: 23px 0;
+      color: #38516e;
+      font-size: 0.76rem;
+      font-weight: 800;
+    }
+
+    .wave {
+      height: 46px;
+      background: repeating-linear-gradient(90deg, transparent 0 6px, var(--wave) 6px 9px, transparent 9px 15px);
+      mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='50' viewBox='0 0 300 50'%3E%3Cpath d='M0 25 C12 5 20 45 33 25 S55 5 68 25 90 45 104 25 126 5 140 25 164 45 178 25 202 5 216 25 240 45 254 25 280 5 300 25' fill='none' stroke='black' stroke-width='8'/%3E%3C/svg%3E");
+      mask-size: 100% 100%;
+    }
+
+    .privacy-groups {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 18px;
+      margin-bottom: 24px;
+    }
+
+    .privacy-group {
+      padding: 20px;
+      border-radius: 16px;
+      background: #edf5fc;
+    }
+
+    .privacy-group.minority { background: #fff1ed; }
+    .privacy-group strong { display: block; color: #183552; font-size: 1.65rem; }
+    .privacy-group span { color: #6c7c8e; font-size: 0.74rem; }
+
+    .noise-layers {
+      display: grid;
+      grid-template-columns: 1fr auto 1fr;
+      gap: 15px;
+      align-items: center;
+      color: #344f6c;
+      font-size: 0.76rem;
+      font-weight: 750;
+      text-align: center;
+    }
+
+    .signal-box {
+      position: relative;
+      height: 82px;
+      overflow: hidden;
+      border-radius: 14px;
+      background: linear-gradient(90deg, #2a7bd7 var(--signal), #dfe8f2 var(--signal));
+    }
+
+    .signal-box::after {
+      content: "";
+      position: absolute;
+      inset: 0;
+      opacity: var(--noise);
+      background-image: radial-gradient(#203b59 1px, transparent 1px);
+      background-size: 6px 6px;
+    }
+
+    .matrix-grid {
+      display: grid;
+      grid-template-columns: 110px 1fr 1fr;
+      gap: 10px;
+      align-items: stretch;
+    }
+
+    .matrix-cell {
+      display: grid;
+      place-items: center;
+      min-height: 78px;
+      padding: 12px;
+      border-radius: 13px;
+      background: #eef4fa;
+      color: #294762;
+      font-size: 0.75rem;
+      text-align: center;
+    }
+
+    .matrix-cell strong {
+      display: block;
+      color: #15314e;
+      font-size: 1.45rem;
+      letter-spacing: -0.04em;
+    }
+
+    .matrix-cell.danger {
+      background: #ffe7e1;
+      color: #8e3b2f;
+    }
+
+    .matrix-head {
+      min-height: auto;
+      background: transparent;
+      font-weight: 800;
+    }
+
+    .decision-flow {
+      display: grid;
+      grid-template-columns: 1fr 38px 1fr 38px 1fr;
+      gap: 9px;
+      align-items: center;
+      margin-bottom: 26px;
+    }
+
+    .decision-node {
+      padding: 16px 10px;
+      border-radius: 14px;
+      background: #edf4fb;
+      color: #24415f;
+      font-size: 0.74rem;
+      font-weight: 800;
+      text-align: center;
+    }
+
+    .decision-node.danger { background: #ffe9e4; color: #913d31; }
+    .decision-arrow { color: #8a9bad; font-size: 1.4rem; text-align: center; }
+
+    .error-compare {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+    }
+
+    .error-stat {
+      padding: 20px;
+      border-radius: 16px;
+      background: #edf5fc;
+      text-align: center;
+    }
+
+    .error-stat.bad { background: #fff0ec; }
+    .error-stat strong { display: block; color: #163553; font-size: 2rem; letter-spacing: -0.05em; }
+    .error-stat span { color: #6b7b8d; font-size: 0.74rem; }
+
+    .bias-map {
+      position: relative;
+      gap: 0;
+      overflow: hidden;
+      border: 1px solid rgba(20, 56, 99, 0.12);
+      border-radius: 20px;
+      background: #fff;
+      box-shadow: 0 12px 32px rgba(25, 54, 90, 0.07);
+    }
+
+    .bias-tag {
+      position: relative;
+      padding: 18px 10px;
+      border: 0;
+      border-radius: 0;
+      background: #fff;
+    }
+
+    .bias-tag + .bias-tag { border-left: 1px solid rgba(20, 56, 99, 0.1); }
+    .bias-tag::before {
+      content: "";
+      position: absolute;
+      inset: auto 14px 0;
+      height: 3px;
+      border-radius: 3px 3px 0 0;
+      background: var(--tag-color);
+    }
+
+    .bias-tag span {
+      display: block;
+      margin-bottom: 5px;
+      color: var(--tag-color);
+      font-size: 0.68rem;
+      font-weight: 850;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+    }
+
+    .bias-tag strong {
+      margin: 0;
+      color: #1c3552;
+      font-size: 0.78rem;
+    }
+
+    .source-body {
+      padding: 24px 26px 28px;
+      display: grid;
+      gap: 18px;
+    }
+
+    .source-top,
+    .source-bottom {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 18px;
+    }
+
+    .subcard {
+      border-radius: 22px;
+      border: 1px solid var(--line);
+      background: linear-gradient(180deg, #ffffff, #fafafd);
+      padding: 20px;
+    }
+
+    .subcard h4 {
+      margin: 0 0 10px;
+      font-size: 1rem;
+      letter-spacing: -0.02em;
+    }
+
+    .subcard p {
+      margin: 0;
+      color: var(--muted);
+      font-size: 0.94rem;
+    }
+
+    .inline-kpis {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 12px;
+      margin-top: 14px;
+    }
+
+    .kpi {
+      padding: 14px;
+      border-radius: 16px;
+      background: #fff;
+      border: 1px solid var(--line);
+    }
+
+    .kpi .label {
+      display: block;
+      font-size: 0.74rem;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--muted);
+      margin-bottom: 6px;
+    }
+
+    .kpi strong {
+      display: block;
+      font-size: 0.98rem;
+      line-height: 1.35;
+    }
+
+    .kpi span {
+      color: var(--muted);
+      font-size: 0.84rem;
+    }
+
+    .warning-box {
+      margin-top: 14px;
+      padding: 14px 16px;
+      border-radius: 18px;
+      background: linear-gradient(180deg, #fff9eb, #fff6e1);
+      border: 1px solid rgba(255,159,10,0.18);
+      color: #7a5300;
+      font-size: 0.92rem;
+    }
+
+    .mapping-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 14px;
+      margin-top: 18px;
+    }
+
+    .mapping-card {
+      padding: 16px;
+      border-radius: 18px;
+      border: 1px solid var(--line);
+      background: linear-gradient(180deg, #ffffff, #fafafd);
+      cursor: pointer;
+      transition: transform .18s ease, box-shadow .18s ease, border-color .18s ease;
+    }
+
+    .mapping-card:hover,
+    .mapping-card.active {
+      transform: translateY(-2px);
+      box-shadow: var(--shadow-soft);
+      border-color: rgba(110,92,246,0.18);
+    }
+
+    .mapping-card .formula {
+      display: block;
+      margin-bottom: 8px;
+      font-size: 0.95rem;
+      color: #172743;
+      font-family: "SFMono-Regular", Consolas, monospace;
+    }
+
+    .mapping-card strong {
+      display: block;
+      margin-bottom: 5px;
+      font-size: 0.93rem;
+    }
+
+    .mapping-card span {
+      color: var(--muted);
+      font-size: 0.88rem;
+    }
+
+    .mapping-detail {
+      margin-top: 16px;
+      padding: 18px;
+      border-radius: 20px;
+      background: #fafafd;
+      border: 1px solid var(--line);
+    }
+
+    .mapping-detail h4 {
+      margin: 0 0 8px;
+      font-size: 1rem;
+    }
+
+    .mapping-detail p {
+      margin: 0 0 10px;
+      color: var(--muted);
+      font-size: 0.94rem;
+    }
+
+    .quiz-grid {
+      display: grid;
+      gap: 18px;
+      margin-top: 18px;
+    }
+
+    .quiz-card {
+      padding: 20px;
+      border-radius: 22px;
+      border: 1px solid var(--line);
+      background: linear-gradient(180deg, #ffffff, #fafafd);
+    }
+
+    .quiz-card h4 {
+      margin: 0 0 8px;
+      font-size: 1rem;
+    }
+
+    .quiz-card p {
+      margin: 0;
+      color: var(--muted);
+      font-size: 0.94rem;
+    }
+
+    .quiz-options {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin-top: 14px;
+    }
+
+    .quiz-btn {
+      appearance: none;
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      background: #fff;
+      color: var(--ink);
+      padding: 10px 14px;
+      font-size: 0.84rem;
+      font-weight: 700;
+      cursor: pointer;
+      transition: transform .15s ease, border-color .15s ease, background .15s ease;
+    }
+
+    .quiz-btn:hover {
+      transform: translateY(-1px);
+      border-color: rgba(0,113,227,0.18);
+    }
+
+    .quiz-answer {
+      display: none;
+      margin-top: 14px;
+      padding: 14px 16px;
+      border-radius: 18px;
+      border: 1px solid var(--line);
+      background: #fff;
+    }
+
+    .quiz-answer.show { display: block; }
+
+    .quiz-answer strong {
+      display: block;
+      margin-bottom: 5px;
+    }
+
+    .quiz-answer span {
+      color: var(--muted);
+      font-size: 0.92rem;
+    }
+
+    .table-wrap {
+      overflow-x: auto;
+      border-radius: 20px;
+      border: 1px solid var(--line);
+      background: #fff;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.94rem;
+    }
+
+    th, td {
+      padding: 14px 16px;
+      border-bottom: 1px solid var(--line);
+      text-align: left;
+      vertical-align: top;
+    }
+
+    th {
+      background: #fafafd;
+      color: var(--muted);
+      font-size: 0.76rem;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+    }
+
+    tr:last-child td { border-bottom: none; }
+
+    .glossary-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 14px;
+      margin-top: 18px;
+    }
+
+    .glossary-card {
+      padding: 16px;
+      border-radius: 18px;
+      border: 1px solid var(--line);
+      background: linear-gradient(180deg, #ffffff, #fafafd);
+    }
+
+    .glossary-card strong {
+      display: block;
+      margin-bottom: 6px;
+      font-size: 0.95rem;
+    }
+
+    .glossary-card span {
+      color: var(--muted);
+      font-size: 0.9rem;
+    }
+
+    footer {
+      padding: 36px 0 70px;
+      color: var(--muted);
+      text-align: center;
+      font-size: 0.92rem;
+    }
+
+    @media (max-width: 1080px) {
+      .stage-grid,
+      .bias-map {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+      }
+    }
+
+    @media (max-width: 980px) {
+      .hero-grid,
+      .grid-2,
+      .grid-3,
+      .spotlight-grid,
+      .evidence-layout,
+      .source-top,
+      .source-bottom,
+      .glossary-grid,
+      .mapping-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .detail-grid,
+      .inline-kpis,
+      .mini-kpi-grid,
+      .case-grid,
+      .summary-strip,
+      .editorial-strip {
+        grid-template-columns: 1fr;
+      }
+
+      .dc-hero {
+        grid-template-columns: 1fr;
+        gap: 26px;
+        padding: 42px 28px 30px;
+      }
+
+      .dc-hero-copy { max-width: 620px; }
+
+      .dc-cases {
+        grid-template-columns: 1fr;
+        margin: 34px 28px 0;
+      }
+
+      .dc-case,
+      .dc-case + .dc-case {
+        padding: 26px 0;
+        border-left: 0;
+      }
+
+      .dc-case + .dc-case {
+        border-top: 1px solid rgba(20, 55, 96, 0.16);
+      }
+
+      .dc-populations {
+        grid-template-columns: 1fr;
+        gap: 30px;
+        padding: 36px 28px 42px;
+      }
+
+      .evidence-copy {
+        border-right: 0;
+        border-bottom: 1px solid rgba(17, 48, 86, 0.1);
+      }
+
+      .case-story-grid,
+      .case-study-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .mechanism-chain {
+        grid-template-columns: 1fr 1fr;
+      }
+    }
+
+    @media (max-width: 720px) {
+      .hero { padding-top: 76px; }
+      .glass, .card, .subcard, .source-head, .source-body { padding-left: 18px; padding-right: 18px; }
+      .metric-grid, .compare-card, .stage-grid, .bias-map { grid-template-columns: 1fr; }
+
+      .dc-story {
+        margin-inline: -8px;
+        border-radius: 26px;
+      }
+
+      .dc-hero { padding: 36px 22px 26px; }
+      .dc-hero h3 { font-size: 2.6rem; }
+
+      .dc-figure {
+        margin: 0 12px;
+        border-radius: 20px;
+      }
+
+      .dc-cases { margin-inline: 22px; }
+      .dc-populations { padding-inline: 22px; }
+
+      .dc-pop-line {
+        grid-template-columns: 1fr 1fr;
+        gap: 24px 0;
+      }
+
+      .dc-pop-node:nth-child(2)::after { display: none; }
+
+      .evidence-card { border-radius: 24px; }
+      .evidence-copy,
+      .evidence-viz { padding: 30px 22px; }
+
+      .study-label {
+        display: block;
+      }
+
+      .study-label strong {
+        display: block;
+        margin-top: 7px;
+        text-align: left;
+      }
+
+      .geo-viz,
+      .semantic-field {
+        grid-template-columns: 1fr;
+      }
+
+      .semantic-score { padding: 10px 0; }
+      .dot-map { min-height: 180px; }
+
+      .proxy-viz {
+        grid-template-columns: 1fr;
+      }
+
+      .proxy-arrow { transform: rotate(90deg); }
+
+      .matrix-grid {
+        grid-template-columns: 82px 1fr 1fr;
+      }
+
+      .decision-flow {
+        grid-template-columns: 1fr;
+      }
+
+      .decision-arrow { transform: rotate(90deg); }
+      .study-source { align-items: flex-start; }
+      .bias-map { grid-template-columns: 1fr; }
+      .bias-tag + .bias-tag { border-left: 0; border-top: 1px solid rgba(20, 56, 99, 0.1); }
+
+      .case-toggle {
+        width: calc(100% - 44px);
+        margin: 0 22px 26px;
+      }
+
+      .case-tabs { padding: 18px 18px 0; }
+      .case-panel { padding: 26px 22px 32px; }
+      .fact-grid,
+      .mechanism-chain { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <header class="hero">
+    <div class="shell">
+      <div class="eyebrow">Responsible ML • Paper-Based Tutorial • Interactive Guide</div>
+      <h1>Sources of Harm Throughout the Machine Learning Life Cycle</h1>
+      <p class="lead">
+        This tutorial is built around Harini Suresh and John Guttag’s framework for understanding how harmful behavior enters machine learning systems. It covers the full life cycle, all seven sources of harm from the paper, the formal mapping framework, and the mitigation logic that follows from identifying the right source.
+      </p>
+
+      <div class="hero-grid">
+        <div class="glass">
+          <h3>What This Tutorial Teaches</h3>
+          <p>Instead of treating "bias" as one blurry concept, this page teaches where harm enters, how to distinguish one source from another, and why correct diagnosis matters before we try to mitigate anything.</p>
+          <div class="note-list">
+            <div class="note">
+              <div class="dot-num">1</div>
+              <div><strong>Downstream harm is sociotechnical</strong><span>Not all failure is a data problem, and not all mitigation is a modeling trick.</span></div>
+            </div>
+            <div class="note">
+              <div class="dot-num">2</div>
+              <div><strong>The paper names seven distinct sources</strong><span>Historical, representation, measurement, aggregation, learning, evaluation, and deployment bias.</span></div>
+            </div>
+            <div class="note">
+              <div class="dot-num">3</div>
+              <div><strong>Different causes need different interventions</strong><span>More data, better labels, richer models, stronger benchmarks, or non-deployment are not interchangeable responses.</span></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="glass">
+          <h3>Learning Outcomes</h3>
+          <p>This page is designed for new ML practitioners who want a practical and conceptually precise way to reason about harm.</p>
+          <div class="metric-grid">
+            <div class="metric"><strong>7</strong><span>sources of harm explained in depth</span></div>
+            <div class="metric"><strong>6</strong><span>life-cycle stages mapped visually</span></div>
+            <div class="metric"><strong>1</strong><span>formal framework explained step by step</span></div>
+            <div class="metric"><strong>10</strong><span>diagnostic questions for practice</span></div>
+          </div>
+          <div class="pill-row">
+            <span class="pill blue">Paper-faithful</span>
+            <span class="pill green">Beginner-safe</span>
+            <span class="pill violet">Visual explanations</span>
+            <span class="pill amber">Interactive checks</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <nav class="nav">
+    <div class="nav-inner">
+      <a href="#why">Why It Matters</a>
+      <a href="#harms">Kinds of Harm</a>
+      <a href="#lifecycle">ML Life Cycle</a>
+      <a href="#sources">Seven Sources</a>
+      <a href="#diagnose">Diagnose</a>
+      <a href="#formal">Formal Framework</a>
+      <a href="#mitigate">Mitigations</a>
+      <a href="#summary">Summary</a>
+    </div>
+  </nav>
+
+  <main class="shell">
+    <section class="section" id="why">
+      <div class="section-header">
+        <div class="section-index">01</div>
+        <div>
+          <h2>Why This Framework Matters</h2>
+          <p>The paper begins from a practical problem: people notice harmful behavior in ML systems, but their explanations are often too vague to guide action well.</p>
+        </div>
+      </div>
+
+      <div class="grid-2">
+        <div class="card">
+          <h3>The problem with saying only "the data is biased"</h3>
+          <p>That phrase can point in the right direction, but it often hides the process that produced the data and ignores the fact that harm can also enter through modeling, benchmarking, and deployment. The paper’s key move is to shift the question from a vague diagnosis to a precise one:</p>
+          <div class="warning-box"><strong>Better question:</strong> Where in the machine learning life cycle is harm being introduced?</div>
+          <div class="step-list">
+            <div class="step">
+              <div class="dot-num">A</div>
+              <div><strong>ML systems are not just models</strong><span>They are built from population choices, measurements, objectives, benchmarks, interfaces, and institutional workflows.</span></div>
+            </div>
+            <div class="step">
+              <div class="dot-num">B</div>
+              <div><strong>Different bad outcomes can have different causes</strong><span>A subgroup failure may come from underrepresentation, poor proxy labels, or off-label use after deployment.</span></div>
+            </div>
+            <div class="step">
+              <div class="dot-num">C</div>
+              <div><strong>Wrong diagnosis leads to wrong mitigation</strong><span>More data may help one problem and do almost nothing for another.</span></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="visual-board">
+          <h3>From vague diagnosis to precise diagnosis</h3>
+          <p>The framework is useful because it takes one overloaded word and turns it into a map of distinct failure points.</p>
+          <div class="compare-card">
+            <div class="compare-block bad">
+              <h4>Vague</h4>
+              <p>"The data is biased."</p>
+              <p>This points to concern, but not to a specific source, mechanism, or target for mitigation.</p>
+            </div>
+            <div class="compare-block good">
+              <h4>Precise</h4>
+              <p>"This is measurement bias in the label pipeline."</p>
+              <p>Now we can ask whether the problem is the proxy itself, unequal measurement quality, or differential surveillance.</p>
+            </div>
+          </div>
+          <div class="svg-wrap" style="margin-top:14px">
+            <svg viewBox="0 0 700 360" aria-label="ML system with arrows from multiple stages">
+              <defs>
+                <linearGradient id="mlcore" x1="0" x2="1" y1="0" y2="1">
+                  <stop offset="0%" stop-color="#0071e3"></stop>
+                  <stop offset="100%" stop-color="#6e5cf6"></stop>
+                </linearGradient>
+                <marker id="arrow" markerWidth="10" markerHeight="10" refX="8" refY="5" orient="auto">
+                  <path d="M0,0 L10,5 L0,10 z" fill="#8ea2bb"></path>
+                </marker>
+              </defs>
+              <rect x="0" y="0" width="700" height="360" fill="transparent"></rect>
+              <circle cx="350" cy="180" r="82" fill="url(#mlcore)" opacity="0.96"></circle>
+              <text x="350" y="170" text-anchor="middle" fill="#fff" font-size="22" font-weight="700">ML</text>
+              <text x="350" y="198" text-anchor="middle" fill="#fff" font-size="18">System</text>
+              <g fill="#1d1d1f" font-size="15" font-weight="600">
+                <text x="82" y="66">Data collection</text>
+                <text x="526" y="66">Model development</text>
+                <text x="570" y="312">Evaluation</text>
+                <text x="66" y="312">Deployment context</text>
+              </g>
+              <g stroke="#8ea2bb" stroke-width="3" fill="none" marker-end="url(#arrow)" opacity="0.88">
+                <path d="M160,82 C220,110 250,130 287,150"></path>
+                <path d="M530,82 C490,112 456,132 412,151"></path>
+                <path d="M570,280 C520,260 470,236 420,214"></path>
+                <path d="M145,278 C205,252 250,228 290,208"></path>
+              </g>
+            </svg>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="harms">
+      <div class="section-header">
+        <div class="section-index">02</div>
+        <div>
+          <h2>What the Paper Means by Harm</h2>
+          <p>Before the paper dives into sources, it reminds us that ML harms do not all look the same. Some concern withheld resources. Others concern stereotypes and stigma.</p>
+        </div>
+      </div>
+
+      <div class="grid-2">
+        <div class="card">
+          <h3>Allocative harm</h3>
+          <p>Allocative harm happens when opportunities, resources, or benefits are withheld from people or groups. This includes being denied a loan, not being selected for an interview, being treated as high risk, or being deprioritized for care.</p>
+          <div class="harm-list">
+            <div class="harm-item"><div class="dot-num">1</div><div><strong>Loans and finance</strong><span>A system may deny a resource or charge a higher price.</span></div></div>
+            <div class="harm-item"><div class="dot-num">2</div><div><strong>Hiring and education</strong><span>A system may block access to interviews, jobs, or admissions.</span></div></div>
+            <div class="harm-item"><div class="dot-num">3</div><div><strong>Healthcare and public services</strong><span>A system may shape who gets screened, prioritized, or followed up.</span></div></div>
+          </div>
+        </div>
+        <div class="card">
+          <h3>Representational harm</h3>
+          <p>Representational harm happens when systems degrade, stereotype, stigmatize, or distort how groups are described. This can happen even when no resource is directly withheld in that moment.</p>
+          <div class="harm-list">
+            <div class="harm-item"><div class="dot-num">1</div><div><strong>Language models</strong><span>They can encode occupational or gendered stereotypes and make them look natural.</span></div></div>
+            <div class="harm-item"><div class="dot-num">2</div><div><strong>Vision systems</strong><span>They can misrecognize or erase groups and imply who counts as normal or visible.</span></div></div>
+            <div class="harm-item"><div class="dot-num">3</div><div><strong>Content and media systems</strong><span>They can repeatedly attach harmful labels, categories, or narratives to certain populations.</span></div></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <h3>Important nuance</h3>
+        <p>A single ML system can create both forms of harm at once. A hiring system can deny people jobs and also reinforce a degraded picture of who looks technically competent. The paper uses this distinction to remind us that fairness is not only about measurable allocation outcomes.</p>
+      </div>
+    </section>
+
+    <section class="section" id="lifecycle">
+      <div class="section-header">
+        <div class="section-index">03</div>
+        <div>
+          <h2>The Machine Learning Life Cycle</h2>
+          <p>Section 2 of the paper lays out the pipeline that later sections analyze. The goal here is to see that harm can enter before, during, and after model training.</p>
+        </div>
+      </div>
+
+      <div class="card">
+        <h3>Interactive lifecycle explorer</h3>
+        <p>Click a stage to see what happens there, what decisions are made, and what kinds of harm often begin at that point.</p>
+        <div class="stage-grid" id="stage-grid"></div>
+        <div class="stage-detail" id="stage-detail"></div>
+      </div>
+
+      <article class="dc-story">
+        <header class="dc-hero">
+          <div>
+            <div class="dc-kicker">Data collection / before training begins</div>
+            <h3>The model never sees the world.<span>It sees a designed sample.</span></h3>
+          </div>
+          <div class="dc-hero-copy">
+            <p>Before an algorithm learns anything, people have already decided <strong>who counts, who is observable, and what recorded values will stand in for reality.</strong> These are design decisions, not neutral facts.</p>
+          </div>
+        </header>
+
+        <figure class="dc-figure">
+          <svg viewBox="0 0 1200 610" role="img" aria-labelledby="dc-title dc-desc">
+            <title id="dc-title">How the world becomes a machine-learning dataset</title>
+            <desc id="dc-desc">A target population is narrowed through sampling access and then encoded as features and labels. Each transition can introduce a different source of harm.</desc>
+            <defs>
+              <linearGradient id="dcNavy" x1="0" x2="1">
+                <stop offset="0%" stop-color="#122b4d"></stop>
+                <stop offset="100%" stop-color="#1d4675"></stop>
+              </linearGradient>
+              <filter id="dcShadow" x="-20%" y="-20%" width="140%" height="140%">
+                <feDropShadow dx="0" dy="10" stdDeviation="14" flood-color="#173b66" flood-opacity="0.12"></feDropShadow>
+              </filter>
+              <pattern id="dcGrid" width="32" height="32" patternUnits="userSpaceOnUse">
+                <path d="M32 0H0V32" fill="none" stroke="#dce6f1" stroke-width="1"></path>
+              </pattern>
+              <marker id="dcArrow" markerWidth="10" markerHeight="10" refX="8" refY="5" orient="auto">
+                <path d="M0 0L10 5L0 10Z" fill="#7890ab"></path>
+              </marker>
+            </defs>
+
+            <rect width="1200" height="610" fill="#fbfdff"></rect>
+            <rect width="1200" height="610" fill="url(#dcGrid)" opacity="0.42"></rect>
+
+            <text x="54" y="48" fill="#1a65c7" font-size="13" font-weight="800" letter-spacing="2.4">01 — DEFINE THE FRAME</text>
+            <text x="448" y="48" fill="#a46300" font-size="13" font-weight="800" letter-spacing="2.4">02 — FILTER ACCESS</text>
+            <text x="812" y="48" fill="#674dd5" font-size="13" font-weight="800" letter-spacing="2.4">03 — CHOOSE PROXIES</text>
+
+            <g filter="url(#dcShadow)">
+              <rect x="52" y="78" width="320" height="388" rx="18" fill="#fff" stroke="#d4e1ef"></rect>
+              <rect x="424" y="78" width="320" height="388" rx="18" fill="#fff" stroke="#e5dccb"></rect>
+              <rect x="796" y="78" width="352" height="388" rx="18" fill="#fff" stroke="#ddd7f3"></rect>
+            </g>
+
+            <text x="82" y="124" fill="#10233e" font-size="25" font-weight="750">Target population</text>
+            <text x="82" y="150" fill="#68798d" font-size="14">The people the system is supposed to represent</text>
+            <text x="454" y="124" fill="#10233e" font-size="25" font-weight="750">Development sample</text>
+            <text x="454" y="150" fill="#68798d" font-size="14">The people institutions can actually observe</text>
+            <text x="826" y="124" fill="#10233e" font-size="25" font-weight="750">Measured dataset</text>
+            <text x="826" y="150" fill="#68798d" font-size="14">The columns used as machine-readable reality</text>
+
+            <g fill="#2b80e8">
+              <circle cx="96" cy="202" r="12"></circle><circle cx="142" cy="202" r="12"></circle><circle cx="188" cy="202" r="12"></circle><circle cx="234" cy="202" r="12"></circle><circle cx="280" cy="202" r="12"></circle><circle cx="326" cy="202" r="12"></circle>
+              <circle cx="96" cy="246" r="12"></circle><circle cx="142" cy="246" r="12"></circle><circle cx="188" cy="246" r="12"></circle><circle cx="234" cy="246" r="12"></circle><circle cx="280" cy="246" r="12"></circle><circle cx="326" cy="246" r="12"></circle>
+              <circle cx="96" cy="290" r="12"></circle><circle cx="142" cy="290" r="12"></circle><circle cx="188" cy="290" r="12"></circle><circle cx="234" cy="290" r="12"></circle><circle cx="280" cy="290" r="12"></circle><circle cx="326" cy="290" r="12"></circle>
+            </g>
+            <g fill="#e86e5a">
+              <circle cx="96" cy="334" r="12"></circle><circle cx="142" cy="334" r="12"></circle><circle cx="188" cy="334" r="12"></circle><circle cx="234" cy="334" r="12"></circle><circle cx="280" cy="334" r="12"></circle><circle cx="326" cy="334" r="12"></circle>
+              <circle cx="96" cy="378" r="12"></circle><circle cx="142" cy="378" r="12"></circle><circle cx="188" cy="378" r="12"></circle><circle cx="234" cy="378" r="12"></circle><circle cx="280" cy="378" r="12"></circle><circle cx="326" cy="378" r="12"></circle>
+            </g>
+            <path d="M72 316H350V410H72Z" fill="none" stroke="#e86e5a" stroke-width="2" stroke-dasharray="6 6"></path>
+            <text x="211" y="436" text-anchor="middle" fill="#b24635" font-size="13" font-weight="700">WHO IS OUTSIDE THE FRAME?</text>
+
+            <path d="M466 188H702L642 286V400H526V286Z" fill="#fff8ec" stroke="#e4b86f" stroke-width="2"></path>
+            <g fill="#d18a1e">
+              <circle cx="500" cy="218" r="10"></circle><circle cx="544" cy="218" r="10"></circle><circle cx="588" cy="218" r="10"></circle><circle cx="632" cy="218" r="10"></circle><circle cx="676" cy="218" r="10"></circle>
+              <circle cx="522" cy="254" r="10"></circle><circle cx="566" cy="254" r="10"></circle><circle cx="610" cy="254" r="10"></circle><circle cx="654" cy="254" r="10"></circle>
+              <circle cx="551" cy="332" r="10"></circle><circle cx="584" cy="332" r="10"></circle><circle cx="617" cy="332" r="10"></circle>
+              <circle cx="566" cy="370" r="10"></circle><circle cx="602" cy="370" r="10"></circle>
+            </g>
+            <g fill="#c7ced8">
+              <circle cx="484" cy="306" r="8"></circle><circle cx="686" cy="314" r="8"></circle><circle cx="498" cy="362" r="8"></circle>
+            </g>
+            <path d="M478 418H690" stroke="#d8a14f" stroke-width="2"></path>
+            <text x="584" y="440" text-anchor="middle" fill="#9b6208" font-size="13" font-weight="700">WHO DISAPPEARS IN SAMPLING?</text>
+
+            <rect x="826" y="184" width="292" height="54" rx="9" fill="#eef5ff"></rect>
+            <rect x="826" y="250" width="292" height="54" rx="9" fill="#f3efff"></rect>
+            <rect x="826" y="316" width="292" height="54" rx="9" fill="#fff3ef"></rect>
+            <text x="846" y="206" fill="#1a65c7" font-size="12" font-weight="800" letter-spacing="1.3">FEATURES</text>
+            <text x="846" y="226" fill="#29415f" font-size="14">income · debt · occupation · location</text>
+            <text x="846" y="272" fill="#674dd5" font-size="12" font-weight="800" letter-spacing="1.3">LABEL</text>
+            <text x="846" y="292" fill="#29415f" font-size="14">“risk” = rearrest within two years</text>
+            <text x="846" y="338" fill="#b24635" font-size="12" font-weight="800" letter-spacing="1.3">PROXY WARNING</text>
+            <text x="846" y="358" fill="#29415f" font-size="14">recorded ≠ objective truth</text>
+            <path d="M826 405H1118" stroke="#806ad9" stroke-width="2"></path>
+            <text x="972" y="438" text-anchor="middle" fill="#674dd5" font-size="13" font-weight="700">WHAT DOES THE LABEL REALLY MEAN?</text>
+
+            <path d="M376 272H414" stroke="#7890ab" stroke-width="3" marker-end="url(#dcArrow)"></path>
+            <path d="M748 272H786" stroke="#7890ab" stroke-width="3" marker-end="url(#dcArrow)"></path>
+
+            <rect x="52" y="500" width="1096" height="70" rx="14" fill="url(#dcNavy)"></rect>
+            <circle cx="86" cy="535" r="7" fill="#69a9ff"></circle>
+            <text x="104" y="530" fill="#fff" font-size="14" font-weight="750">HISTORICAL BIAS</text>
+            <text x="104" y="550" fill="#cbd8e7" font-size="12">The world being recorded is already unequal.</text>
+            <circle cx="448" cy="535" r="7" fill="#f0b44e"></circle>
+            <text x="466" y="530" fill="#fff" font-size="14" font-weight="750">REPRESENTATION BIAS</text>
+            <text x="466" y="550" fill="#cbd8e7" font-size="12">The sample does not represent intended use.</text>
+            <circle cx="848" cy="535" r="7" fill="#b29cff"></circle>
+            <text x="866" y="530" fill="#fff" font-size="14" font-weight="750">MEASUREMENT BIAS</text>
+            <text x="866" y="550" fill="#cbd8e7" font-size="12">Features and labels measure groups differently.</text>
+          </svg>
+        </figure>
+
+        <div class="dc-cases">
+          <section class="dc-case">
+            <span class="dc-case-no">01 / POPULATION FRAMING</span>
+            <h4>The boundary is part of the model.</h4>
+            <p>A target population is not simply found. It is defined. A narrow definition can erase affected people before sampling even begins.</p>
+            <span class="dc-case-example"><strong>Lending:</strong> people with established credit records are not the same population as everyone who needs fair access to credit.</span>
+            <span class="dc-harm" style="--harm-color:#2478e8">Representation bias</span>
+          </section>
+          <section class="dc-case">
+            <span class="dc-case-no">02 / SAMPLING ACCESS</span>
+            <h4>Availability is not representativeness.</h4>
+            <p>Who enters a dataset depends on access to hospitals, devices, platforms, institutions, and surveillance, not only on who exists.</p>
+            <span class="dc-case-example"><strong>Healthcare:</strong> patients who receive advanced screening may be sicker, wealthier, or better connected than the eventual use population.</span>
+            <span class="dc-harm" style="--harm-color:#d18a1e">Representation bias</span>
+          </section>
+          <section class="dc-case">
+            <span class="dc-case-no">03 / FEATURES + LABELS</span>
+            <h4>A measurable proxy can still be wrong.</h4>
+            <p>Datasets often replace a difficult construct with an available record. The proxy may inherit social and institutional distortions.</p>
+            <span class="dc-case-example"><strong>Criminal justice:</strong> rearrest records reflect policing and surveillance patterns; they are not a direct measurement of criminal behavior.</span>
+            <span class="dc-harm" style="--harm-color:#806ad9">Measurement bias</span>
+          </section>
+        </div>
+
+        <div class="dc-populations">
+          <div>
+            <h4>Four populations. Four different questions.</h4>
+            <p>The development sample is never the whole world. A system can perform well on benchmark data and still fail when the people encountered after deployment differ from those used to build it.</p>
+          </div>
+          <div class="dc-pop-line" aria-label="Population distinctions across the machine learning lifecycle">
+            <div class="dc-pop-node" style="--node:#2478e8"><strong>Target</strong>Who should be represented?</div>
+            <div class="dc-pop-node" style="--node:#d18a1e"><strong>Development</strong>Who was used to train?</div>
+            <div class="dc-pop-node" style="--node:#806ad9"><strong>Benchmark</strong>Who was used to evaluate?</div>
+            <div class="dc-pop-node" style="--node:#2d9a61"><strong>Use</strong>Who encounters the system?</div>
+          </div>
+        </div>
+      </article>
+
+      <div class="spotlight-card legacy-data-collection" style="margin-top:18px">
+        <h3>Data Collection Deep Dive</h3>
+        <p>Data collection is where the paper’s framework starts becoming concrete. Before any model exists, someone has already framed the world, decided who counts, decided how to sample, and decided what to measure. Those early choices quietly shape everything that comes later.</p>
+        <div class="editorial-intro">
+          <div class="editorial-kicker">Report View</div>
+          <div class="editorial-title">Three quiet design decisions shape the dataset before the model ever sees it.</div>
+          <div class="editorial-copy">A stronger visual way to read this stage is: define the frame, filter who becomes observable, then inspect which recorded variables are standing in for deeper constructs. That is where early harm often starts.</div>
+        </div>
+        <div class="full-bleed-visual visual-board">
+          <h3>From world to development sample</h3>
+          <p>This is the full data-collection flow. It is where historical bias, representation bias, and measurement bias often begin, long before architecture or optimization choices are made.</p>
+          <div class="svg-wrap">
+            <svg viewBox="0 0 980 420" aria-label="Data collection explainer">
+              <defs>
+                <linearGradient id="dcA2" x1="0" x2="1" y1="0" y2="1">
+                  <stop offset="0%" stop-color="#e8f2ff"></stop>
+                  <stop offset="100%" stop-color="#f6faff"></stop>
+                </linearGradient>
+                <linearGradient id="dcB2" x1="0" x2="1" y1="0" y2="1">
+                  <stop offset="0%" stop-color="#fff4e3"></stop>
+                  <stop offset="100%" stop-color="#fffaf2"></stop>
+                </linearGradient>
+                <linearGradient id="dcC2" x1="0" x2="1" y1="0" y2="1">
+                  <stop offset="0%" stop-color="#f0edff"></stop>
+                  <stop offset="100%" stop-color="#faf9ff"></stop>
+                </linearGradient>
+                <marker id="dcArrow2" markerWidth="12" markerHeight="12" refX="9" refY="6" orient="auto">
+                  <path d="M0,0 L12,6 L0,12 z" fill="#92a3bc"></path>
+                </marker>
+              </defs>
+
+              <rect x="42" y="72" width="250" height="248" rx="30" fill="url(#dcA2)" stroke="rgba(0,113,227,0.16)"></rect>
+              <rect x="364" y="104" width="184" height="184" rx="30" fill="url(#dcB2)" stroke="rgba(255,159,10,0.18)"></rect>
+              <rect x="622" y="88" width="296" height="216" rx="30" fill="url(#dcC2)" stroke="rgba(110,92,246,0.18)"></rect>
+
+              <text x="167" y="112" text-anchor="middle" font-size="28" font-weight="700" fill="#0071e3">Target population</text>
+              <text x="456" y="136" text-anchor="middle" font-size="28" font-weight="700" fill="#a86000">Development sample</text>
+              <text x="770" y="120" text-anchor="middle" font-size="28" font-weight="700" fill="#5644de">Measured dataset</text>
+
+              <g fill="#6e6e73" font-size="16">
+                <text x="167" y="142" text-anchor="middle">Who is intended to be in scope?</text>
+                <text x="456" y="166" text-anchor="middle">Who actually gets included?</text>
+                <text x="770" y="150" text-anchor="middle">What columns stand in for reality?</text>
+              </g>
+
+              <g fill="#1d1d1f" font-size="14" font-weight="700">
+                <text x="68" y="54">1. Population framing</text>
+                <text x="378" y="82">2. Sampling access</text>
+                <text x="640" y="64">3. Feature and label choice</text>
+              </g>
+
+              <g>
+                <circle cx="110" cy="182" r="18" fill="#fff"></circle>
+                <circle cx="167" cy="182" r="18" fill="#fff"></circle>
+                <circle cx="224" cy="182" r="18" fill="#fff"></circle>
+                <circle cx="110" cy="240" r="18" fill="#fff"></circle>
+                <circle cx="167" cy="240" r="18" fill="#fff"></circle>
+                <circle cx="224" cy="240" r="18" fill="#fff"></circle>
+                <circle cx="110" cy="298" r="18" fill="#fff"></circle>
+                <circle cx="167" cy="298" r="18" fill="#fff"></circle>
+                <circle cx="224" cy="298" r="18" fill="#fff"></circle>
+              </g>
+
+              <g>
+                <circle cx="414" cy="180" r="16" fill="#fff"></circle>
+                <circle cx="456" cy="180" r="16" fill="#fff"></circle>
+                <circle cx="498" cy="180" r="16" fill="#fff"></circle>
+                <circle cx="435" cy="228" r="16" fill="#fff"></circle>
+                <circle cx="477" cy="228" r="16" fill="#fff"></circle>
+                <circle cx="456" cy="274" r="16" fill="#fff"></circle>
+              </g>
+
+              <path d="M292 214 C322 214 336 214 364 214" stroke="#92a3bc" stroke-width="5" fill="none" marker-end="url(#dcArrow2)"></path>
+              <path d="M548 214 C578 214 592 214 622 214" stroke="#92a3bc" stroke-width="5" fill="none" marker-end="url(#dcArrow2)"></path>
+
+              <g>
+                <rect x="660" y="176" width="220" height="38" rx="12" fill="#fff"></rect>
+                <rect x="660" y="226" width="220" height="38" rx="12" fill="#fff"></rect>
+                <text x="682" y="199" font-size="16" font-weight="700" fill="#1d1d1f">Features</text>
+                <text x="760" y="199" font-size="14" fill="#6e6e73">income, debt, occupation</text>
+                <text x="682" y="249" font-size="16" font-weight="700" fill="#1d1d1f">Labels</text>
+                <text x="744" y="249" font-size="14" fill="#6e6e73">repaid? arrested? diagnosed?</text>
+              </g>
+
+              <g fill="#1d1d1f" font-size="15" font-weight="700">
+                <text x="167" y="350" text-anchor="middle">The world you intend to model</text>
+                <text x="456" y="318" text-anchor="middle">A smaller, filtered slice</text>
+                <text x="770" y="328" text-anchor="middle">Records after measurement</text>
+              </g>
+            </svg>
+          </div>
+        </div>
+
+        <div class="editorial-strip">
+          <div class="editorial-card">
+            <div class="num" style="background:#0071e3">1</div>
+            <h4>Population framing</h4>
+            <p>The target population is a choice, not a neutral given. If the frame is narrow, some affected people never become visible to the system at all.</p>
+            <div class="editorial-case">
+              <strong>Real case: loan approval systems</strong>
+              <span>If a lending model is framed around people who already have strong credit histories, that is already a narrower world than everyone affected by lending decisions.</span>
+            </div>
+            <span class="pill blue">Often linked: representation bias</span>
+          </div>
+
+          <div class="editorial-card">
+            <div class="num" style="background:#ff9f0a">2</div>
+            <h4>Sampling access</h4>
+            <p>Even when the frame seems acceptable, the observed sample can still be skewed by severity, surveillance, infrastructure, or institutional attention.</p>
+            <div class="editorial-case">
+              <strong>Real case: medical screening data</strong>
+              <span>The paper notes that some datasets contain mostly people serious enough to receive additional screening, not the full population the model may later be used on.</span>
+            </div>
+            <span class="pill amber">Often linked: representation bias</span>
+          </div>
+
+          <div class="editorial-card">
+            <div class="num" style="background:#6e5cf6">3</div>
+            <h4>Feature and label proxies</h4>
+            <p>Recorded columns are often not truth. They are measurable stand-ins for deeper constructs, and those stand-ins can be socially distorted.</p>
+            <div class="editorial-case">
+              <strong>Real case: COMPAS and arrest records</strong>
+              <span>Arrest and rearrest are often treated as though they directly capture crime or recidivism, but they are shaped by differential policing and unequal surveillance.</span>
+            </div>
+            <span class="pill violet">Often linked: measurement bias</span>
+          </div>
+        </div>
+
+        <div class="editorial-footer"><strong>What people often ignore:</strong> the development sample is never the whole world, and even the target population may already be a narrow framing of the actual problem. That is why early-stage harm can exist before any model is trained.</div>
+      </div>
+
+      <div class="grid-2 legacy-data-collection" style="margin-top:18px">
+        <div class="visual-board">
+          <h3>Target population, development sample, benchmark, and use population are not the same</h3>
+          <p>The paper repeatedly distinguishes these because many ML failures come from collapsing them together.</p>
+          <div class="svg-wrap">
+            <svg viewBox="0 0 700 340" aria-label="Population distinctions">
+              <rect x="36" y="44" width="280" height="220" rx="24" fill="#eff6ff" stroke="rgba(0,113,227,0.16)"></rect>
+              <rect x="84" y="92" width="180" height="124" rx="20" fill="#ffffff" stroke="rgba(0,0,0,0.08)"></rect>
+              <rect x="390" y="54" width="244" height="92" rx="22" fill="#fff5e8" stroke="rgba(255,159,10,0.18)"></rect>
+              <rect x="390" y="184" width="244" height="92" rx="22" fill="#eafaf0" stroke="rgba(52,199,89,0.18)"></rect>
+              <text x="176" y="78" text-anchor="middle" font-size="20" font-weight="700" fill="#0071e3">Target population</text>
+              <text x="176" y="142" text-anchor="middle" font-size="18" font-weight="700" fill="#1d1d1f">Development sample</text>
+              <text x="176" y="172" text-anchor="middle" font-size="14" fill="#6e6e73">What is actually used to build the model</text>
+              <text x="512" y="98" text-anchor="middle" font-size="20" font-weight="700" fill="#a86000">Benchmark data</text>
+              <text x="512" y="126" text-anchor="middle" font-size="14" fill="#6e6e73">External evaluation sets used to compare models</text>
+              <text x="512" y="226" text-anchor="middle" font-size="20" font-weight="700" fill="#187f3d">Use population</text>
+              <text x="512" y="254" text-anchor="middle" font-size="14" fill="#6e6e73">The people the deployed system actually encounters</text>
+              <path d="M264 156 C318 156 348 120 390 104" stroke="#8ea2bb" stroke-width="3" fill="none"></path>
+              <path d="M264 170 C332 188 348 212 390 228" stroke="#8ea2bb" stroke-width="3" fill="none"></path>
+            </svg>
+          </div>
+        </div>
+
+        <div class="card">
+          <h3>Running example used in the paper</h3>
+          <p>The ML overview section uses a loan approval scenario. This example is useful because it reveals how choices enter at every stage of the life cycle.</p>
+          <div class="step-list">
+            <div class="step"><div class="dot-num">1</div><div><strong>Data collection</strong><span>Who counts as the target population? Past loan applicants? State residents? People with credit histories?</span></div></div>
+            <div class="step"><div class="dot-num">2</div><div><strong>Measurement</strong><span>What features are collected? Debt, occupation, income, credit history, repayment labels.</span></div></div>
+            <div class="step"><div class="dot-num">3</div><div><strong>Evaluation</strong><span>Which errors matter more? False negatives for applicants or false positives for lenders?</span></div></div>
+            <div class="step"><div class="dot-num">4</div><div><strong>Deployment</strong><span>How is the output shown to lenders, regulators, and applicants, and what recourse exists?</span></div></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="sources">
+      <div class="section-header">
+        <div class="section-index">04</div>
+        <div>
+          <h2>The Seven Sources of Harm</h2>
+          <p>An evidence atlas of the seven sources: each concept is paired with a real study, a quantitative finding, and a visualization of the mechanism. The categories are distinct but not mutually exclusive; one system can suffer from several at once.</p>
+        </div>
+      </div>
+
+      <div class="bias-map" id="bias-map"></div>
+      <div class="source-grid" id="source-grid"></div>
+    </section>
+
+    <section class="section" id="diagnose">
+      <div class="section-header">
+        <div class="section-index">05</div>
+        <div>
+          <h2>How to Diagnose the Source</h2>
+          <p>Section 3.8 of the paper turns the framework into a practical way of thinking. The question is not only what went wrong, but what part of the system makes that source plausible.</p>
+        </div>
+      </div>
+
+      <div class="grid-2">
+        <div class="card">
+          <h3>Practical diagnostic checklist</h3>
+          <div class="check-list">
+            <div class="check-item"><div class="dot-num">1</div><div><strong>Who is the target population?</strong><span>And how does that differ from the people who actually show up in use?</span></div></div>
+            <div class="check-item"><div class="dot-num">2</div><div><strong>Who is missing from the development sample?</strong><span>Underrepresentation can be a target-population or sampling problem.</span></div></div>
+            <div class="check-item"><div class="dot-num">3</div><div><strong>Which labels are proxies?</strong><span>Constructs like risk, success, illness, and merit are often only observed indirectly.</span></div></div>
+            <div class="check-item"><div class="dot-num">4</div><div><strong>Could measurement differ across groups?</strong><span>Ask about surveillance, diagnosis, annotation, and differential accuracy.</span></div></div>
+            <div class="check-item"><div class="dot-num">5</div><div><strong>Is one model flattening subgroup differences?</strong><span>If yes, aggregation bias may be a better diagnosis than underrepresentation alone.</span></div></div>
+            <div class="check-item"><div class="dot-num">6</div><div><strong>How is the system actually used?</strong><span>Deployment bias often appears when real workflows differ from the imagined autonomous model.</span></div></div>
+          </div>
+        </div>
+
+        <div class="card">
+          <h3>Quick diagnosis quiz</h3>
+          <p>Pick the most central source of harm in each scenario. The goal is not memorization. It is learning to see different structures behind superficially similar failures.</p>
+          <div class="quiz-grid">
+            <div class="quiz-card">
+              <h4>Scenario 1</h4>
+              <p>A facial analysis system reports high overall accuracy on its benchmark, but performs much worse on dark-skinned women who were sparsely represented in the benchmark.</p>
+              <div class="quiz-options">
+                <button class="quiz-btn" data-target="q1" data-correct="evaluation">Evaluation bias</button>
+                <button class="quiz-btn" data-target="q1" data-correct="false">Learning bias</button>
+                <button class="quiz-btn" data-target="q1" data-correct="false">Deployment bias</button>
+              </div>
+              <div class="quiz-answer" id="q1"><strong>Evaluation bias</strong><span>The paper’s example here is exactly the benchmark problem in commercial facial analysis. The system looked strong under evaluation because the benchmark was too narrow and aggregate reporting hid subgroup failure.</span></div>
+            </div>
+            <div class="quiz-card">
+              <h4>Scenario 2</h4>
+              <p>A model predicts future criminal risk using arrest records as labels. But some communities are policed much more heavily, so the path from behavior to arrest differs across groups.</p>
+              <div class="quiz-options">
+                <button class="quiz-btn" data-target="q2" data-correct="measurement">Measurement bias</button>
+                <button class="quiz-btn" data-target="q2" data-correct="false">Historical bias</button>
+                <button class="quiz-btn" data-target="q2" data-correct="false">Aggregation bias</button>
+              </div>
+              <div class="quiz-answer" id="q2"><strong>Measurement bias</strong><span>The key issue is that arrest is a proxy for crime or risk, and that proxy is differentially measured across groups because of unequal policing.</span></div>
+            </div>
+            <div class="quiz-card">
+              <h4>Scenario 3</h4>
+              <p>A model was designed to estimate risk scores, but in practice judges begin using it to justify sentence length in ways that were never part of the original design or evaluation.</p>
+              <div class="quiz-options">
+                <button class="quiz-btn" data-target="q3" data-correct="deployment">Deployment bias</button>
+                <button class="quiz-btn" data-target="q3" data-correct="false">Representation bias</button>
+                <button class="quiz-btn" data-target="q3" data-correct="false">Evaluation bias</button>
+              </div>
+              <div class="quiz-answer" id="q3"><strong>Deployment bias</strong><span>This is the paper’s criminal-justice deployment example. The model is being used inside a different sociotechnical decision process than the one it was originally framed around.</span></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="formal">
+      <div class="section-header">
+        <div class="section-index">06</div>
+        <div>
+          <h2>The Formal Framework in Figure 2</h2>
+          <p>This is the part of the paper that uses mapping functions to formalize the life cycle. These are not calculus equations; they are compact ways of saying how data and decisions are transformed from world to deployment.</p>
+        </div>
+      </div>
+
+      <div class="grid-2">
+        <div class="card">
+          <h3>Plain-English version first</h3>
+          <p>Before reading symbols, read the pipeline like this:</p>
+          <div class="warning-box"><strong>World -> target population -> sample -> measured proxies -> learned model -> evaluation -> real decision</strong></div>
+          <div class="step-list">
+            <div class="step"><div class="dot-num">1</div><div><strong>Constructs exist in the world</strong><span>These are the things we really care about: risk, illness, qualification, creditworthiness, harmful intent.</span></div></div>
+            <div class="step"><div class="dot-num">2</div><div><strong>We sample only part of the population</strong><span>That subset becomes the development sample used for building the model.</span></div></div>
+            <div class="step"><div class="dot-num">3</div><div><strong>We measure proxies</strong><span>Constructs become feature proxies and label proxies, often imperfectly.</span></div></div>
+            <div class="step"><div class="dot-num">4</div><div><strong>We learn a function from proxies</strong><span>The actual model rarely learns the ideal target function directly.</span></div></div>
+            <div class="step"><div class="dot-num">5</div><div><strong>We evaluate it</strong><span>Metrics depend on benchmarks, subgroup visibility, and evaluation design.</span></div></div>
+            <div class="step"><div class="dot-num">6</div><div><strong>We deploy it into a decision process</strong><span>Human judgment, institutional rules, and interface design now shape the final decision.</span></div></div>
+          </div>
+        </div>
+
+        <div class="visual-board">
+          <h3>Redesigned pipeline map</h3>
+          <p>This diagram translates the paper’s formalization into a web-friendly visual. Each mapping below explains one symbol used in the paper.</p>
+          <div class="svg-wrap">
+            <svg viewBox="0 0 720 380" aria-label="Formal framework diagram">
+              <defs>
+                <marker id="arrow2" markerWidth="10" markerHeight="10" refX="8" refY="5" orient="auto">
+                  <path d="M0,0 L10,5 L0,10 z" fill="#8ea2bb"></path>
+                </marker>
+              </defs>
+              <rect x="22" y="72" width="112" height="72" rx="18" fill="#eff6ff" stroke="rgba(0,113,227,0.16)"></rect>
+              <rect x="182" y="72" width="112" height="72" rx="18" fill="#ffffff" stroke="rgba(0,0,0,0.08)"></rect>
+              <rect x="340" y="56" width="120" height="104" rx="18" fill="#fff5e8" stroke="rgba(255,159,10,0.18)"></rect>
+              <rect x="512" y="72" width="140" height="72" rx="18" fill="#efefff" stroke="rgba(110,92,246,0.18)"></rect>
+              <rect x="512" y="224" width="140" height="72" rx="18" fill="#eaf8fb" stroke="rgba(48,176,199,0.18)"></rect>
+              <rect x="340" y="224" width="120" height="72" rx="18" fill="#f1f4f8" stroke="rgba(94,104,118,0.18)"></rect>
+              <text x="78" y="104" text-anchor="middle" font-size="16" font-weight="700" fill="#0071e3">Xⁿ, Yⁿ</text>
+              <text x="78" y="124" text-anchor="middle" font-size="12" fill="#6e6e73">target population</text>
+              <text x="238" y="104" text-anchor="middle" font-size="16" font-weight="700" fill="#1d1d1f">sample</text>
+              <text x="238" y="124" text-anchor="middle" font-size="12" fill="#6e6e73">Xⁿ, Yⁿ</text>
+              <text x="400" y="96" text-anchor="middle" font-size="16" font-weight="700" fill="#a86000">proxies</text>
+              <text x="400" y="118" text-anchor="middle" font-size="12" fill="#6e6e73">X', Y'</text>
+              <text x="582" y="104" text-anchor="middle" font-size="16" font-weight="700" fill="#5644de">f_actual</text>
+              <text x="582" y="124" text-anchor="middle" font-size="12" fill="#6e6e73">learned model</text>
+              <text x="582" y="256" text-anchor="middle" font-size="16" font-weight="700" fill="#117b8e">k -> E</text>
+              <text x="582" y="276" text-anchor="middle" font-size="12" fill="#6e6e73">evaluation</text>
+              <text x="400" y="256" text-anchor="middle" font-size="16" font-weight="700" fill="#43505f">h -> d</text>
+              <text x="400" y="276" text-anchor="middle" font-size="12" fill="#6e6e73">deployment decision</text>
+              <path d="M134 108 C152 108 164 108 182 108" stroke="#8ea2bb" stroke-width="3" fill="none" marker-end="url(#arrow2)"></path>
+              <path d="M294 108 C312 108 322 108 340 108" stroke="#8ea2bb" stroke-width="3" fill="none" marker-end="url(#arrow2)"></path>
+              <path d="M460 108 C478 108 490 108 512 108" stroke="#8ea2bb" stroke-width="3" fill="none" marker-end="url(#arrow2)"></path>
+              <path d="M582 144 C582 170 582 190 582 224" stroke="#8ea2bb" stroke-width="3" fill="none" marker-end="url(#arrow2)"></path>
+              <path d="M512 260 C496 260 482 260 460 260" stroke="#8ea2bb" stroke-width="3" fill="none" marker-end="url(#arrow2)"></path>
+            </svg>
+          </div>
+        </div>
+      </div>
+
+      <div class="card" style="margin-top:18px">
+        <h3>Click the mappings from the paper</h3>
+        <p>Each mapping marks a transformation. Knowing what it means makes it much easier to see why different harms attach to different places.</p>
+        <div class="mapping-grid" id="mapping-grid"></div>
+        <div class="mapping-detail" id="mapping-detail"></div>
+      </div>
+    </section>
+
+    <section class="section" id="mitigate">
+      <div class="section-header">
+        <div class="section-index">07</div>
+        <div>
+          <h2>Designing Mitigations Correctly</h2>
+          <p>Section 4.2 of the paper argues that mitigation only makes sense when it targets the correct source. This section should be read as a discipline against one-size-fits-all fixes.</p>
+        </div>
+      </div>
+
+      <div class="card">
+        <h3>The central mitigation lesson</h3>
+        <p>Different sources of harm require different interventions. A fairness-aware algorithm cannot be treated as a universal solution because some problems live in sampling, some in measurement, some in model structure, some in evaluation practice, and some in deployment institutions.</p>
+        <div class="table-wrap" style="margin-top:16px">
+          <table>
+            <thead>
+              <tr>
+                <th>Source</th>
+                <th>What is usually wrong</th>
+                <th>Misleading fix</th>
+                <th>Better target for intervention</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><strong>Historical bias</strong></td>
+                <td>The world itself reflects harmful patterns</td>
+                <td>Assume accurate data is enough</td>
+                <td>Reconsider population design, distribution shaping, or whether prediction should be deployed at all</td>
+              </tr>
+              <tr>
+                <td><strong>Representation bias</strong></td>
+                <td>Groups are underrepresented in target definition or sampling</td>
+                <td>Only change the loss function</td>
+                <td>Population definition and sampling strategy</td>
+              </tr>
+              <tr>
+                <td><strong>Measurement bias</strong></td>
+                <td>Constructs are reduced to flawed or unequal proxies</td>
+                <td>Collect more of the same labels</td>
+                <td>Redesign measurement, annotation, and proxy choice</td>
+              </tr>
+              <tr>
+                <td><strong>Aggregation bias</strong></td>
+                <td>One model collapses meaningful subgroup structure</td>
+                <td>Assume one-size-fits-all modeling is neutral</td>
+                <td>Group-aware or richer modeling assumptions</td>
+              </tr>
+              <tr>
+                <td><strong>Learning bias</strong></td>
+                <td>Optimization objectives amplify disparities</td>
+                <td>Assume training setup is just implementation detail</td>
+                <td>Objectives, optimization, capacity allocation, regularization</td>
+              </tr>
+              <tr>
+                <td><strong>Evaluation bias</strong></td>
+                <td>Benchmarks and metrics hide real-world failure</td>
+                <td>Rely on one aggregate metric</td>
+                <td>Subgroup metrics, better benchmarks, use-matched evaluation</td>
+              </tr>
+              <tr>
+                <td><strong>Deployment bias</strong></td>
+                <td>Real-world use diverges from the framed task</td>
+                <td>Only retrain the model</td>
+                <td>Workflow design, interfaces, governance, human use, or non-deployment</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="grid-2" style="margin-top:18px">
+        <div class="card">
+          <h3>Why the paper avoids a universal fix checklist</h3>
+          <p>The authors are careful not to imply that there is a comprehensive table of ready-made remedies. That restraint is part of the contribution. It keeps us from pretending that fairness is a generic property that can be patched in the same way across contexts.</p>
+          <div class="warning-box"><strong>Important:</strong> Sometimes mitigation is possible. Sometimes harm should instead trigger a decision not to deploy.</div>
+        </div>
+        <div class="card">
+          <h3>What a strong practitioner should ask</h3>
+          <div class="check-list">
+            <div class="check-item"><div class="dot-num">1</div><div><strong>What exact source am I targeting?</strong><span>Name the stage and mechanism instead of saying only "bias."</span></div></div>
+            <div class="check-item"><div class="dot-num">2</div><div><strong>What assumptions does my mitigation make?</strong><span>For example, does it assume labels are acceptable, or that one model can fit all groups?</span></div></div>
+            <div class="check-item"><div class="dot-num">3</div><div><strong>What remains outside the model?</strong><span>Interfaces, users, institutions, and incentives still shape outcomes after deployment.</span></div></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="summary">
+      <div class="section-header">
+        <div class="section-index">08</div>
+        <div>
+          <h2>Summary, Glossary, and Takeaways</h2>
+          <p>The paper ends by emphasizing that these distinctions improve communication, diagnosis, and intervention. Fairness is not one-size-fits-all; it must be grounded in application context and the full life cycle.</p>
+        </div>
+      </div>
+
+      <div class="grid-2">
+        <div class="card">
+          <h3>Final takeaways</h3>
+          <div class="step-list">
+            <div class="step"><div class="dot-num">1</div><div><strong>Harm can enter before, during, and after training</strong><span>Population definition, sampling, measurement, learning, evaluation, and deployment all matter.</span></div></div>
+            <div class="step"><div class="dot-num">2</div><div><strong>Two systems with similar failures may need different fixes</strong><span>One may suffer from underrepresentation, another from proxy labels, and another from off-label deployment.</span></div></div>
+            <div class="step"><div class="dot-num">3</div><div><strong>Correct mitigation depends on correct diagnosis</strong><span>There is no universal fairness patch that safely substitutes for contextual reasoning.</span></div></div>
+            <div class="step"><div class="dot-num">4</div><div><strong>ML systems are sociotechnical systems</strong><span>They are shaped by institutions, workflows, and historical context, not only by model parameters.</span></div></div>
+          </div>
+        </div>
+        <div class="card">
+          <h3>Glossary</h3>
+          <div class="glossary-grid">
+            <div class="glossary-card"><strong>Target population</strong><span>The broader population the system is intended to reason about.</span></div>
+            <div class="glossary-card"><strong>Development sample</strong><span>The subset actually used to build the model.</span></div>
+            <div class="glossary-card"><strong>Use population</strong><span>The real population the deployed system encounters.</span></div>
+            <div class="glossary-card"><strong>Benchmark dataset</strong><span>An external dataset used to compare or test models.</span></div>
+            <div class="glossary-card"><strong>Construct</strong><span>The underlying concept we really care about, such as illness, risk, or creditworthiness.</span></div>
+            <div class="glossary-card"><strong>Proxy</strong><span>A measurable stand-in used to approximate a construct.</span></div>
+            <div class="glossary-card"><strong>Allocative harm</strong><span>Withholding resources, opportunities, or benefits.</span></div>
+            <div class="glossary-card"><strong>Representational harm</strong><span>Reinforcing stereotypes, stigma, or degrading patterns of description.</span></div>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="shell">
+    Built as an interactive HTML tutorial based on Harini Suresh and John Guttag’s framework for understanding sources of harm throughout the machine learning life cycle.
+  </footer>
+
+  <script>
+    const lifecycleStages = [
+      {
+        name: "Data Collection",
+        summary: "Define the target population, decide how to sample, and choose what gets measured.",
+        decisions: "Population definition, sampling access, feature choice, label choice.",
+        overlooked: "The development sample is never the whole world, and even the target population may already be a narrow framing.",
+        harms: "Historical bias, representation bias, measurement bias often begin here."
+      },
+      {
+        name: "Data Preparation",
+        summary: "Clean, split, encode, normalize, simplify, and transform the dataset before training.",
+        decisions: "Missing data handling, category grouping, normalization, train/validation/test split design.",
+        overlooked: "Preparation steps can erase variation, center dominant cases, or harden assumptions about what matters.",
+        harms: "Measurement and representation issues can be preserved or sharpened here."
+      },
+      {
+        name: "Model Development",
+        summary: "Choose the model class, the objective, the optimization procedure, and the selection strategy.",
+        decisions: "Architecture, hyperparameters, loss function, regularization, selection criteria.",
+        overlooked: "Training is not neutral; objectives privilege some tradeoffs and performance profiles over others.",
+        harms: "Aggregation bias and learning bias are central at this stage."
+      },
+      {
+        name: "Evaluation",
+        summary: "Measure model quality on held-out data and often on external benchmarks.",
+        decisions: "Benchmark choice, metric choice, subgroup reporting, comparative framing.",
+        overlooked: "A model can look strong on a narrow benchmark and still fail badly in its actual use population.",
+        harms: "Evaluation bias enters through benchmark mismatch and aggregate metric concealment."
+      },
+      {
+        name: "Postprocessing",
+        summary: "Convert scores into categories, thresholds, flags, or ranked recommendations.",
+        decisions: "Threshold setting, bucket definitions, display choices, risk band design.",
+        overlooked: "The output users see is often not the raw model output, and thresholding changes consequences.",
+        harms: "Evaluation and deployment concerns can intensify here, especially near decision boundaries."
+      },
+      {
+        name: "Deployment",
+        summary: "Embed the system into real human and institutional workflows.",
+        decisions: "Interface design, user recourse, policy integration, who interprets the model and how.",
+        overlooked: "A well-tested model can still cause harm when used off-label or inside a distorted sociotechnical process.",
+        harms: "Deployment bias becomes central, but earlier problems also surface here."
+      }
+    ];
+
+    const sourceData = [
+      {
+        color: "red",
+        accent: "#d95d49",
+        soft: "#fff0ec",
+        visual: "historical",
+        badge: "Historical Bias",
+        study: "Caliskan, Bryson & Narayanan · Science · 2017",
+        evidenceTitle: "Language reproduces a gender–career association",
+        citation: "Word Embedding Association Test, career vs family words",
+        sourceUrl: "https://www.science.org/doi/10.1126/science.aal4230",
+        enters: "Arises from the state of the world itself, even with perfect sampling and perfect measurement.",
+        title: "Historical Bias",
+        subtitle: "A model can reflect reality accurately and still be harmful because the world it reflects already contains inequality, stereotype, or structural exclusion.",
+        why: "This is the paper’s reminder that accurate modeling does not guarantee fair or socially acceptable modeling.",
+        example: "Word embeddings trained on large corpora encode historical stereotypes. Occupation words become associated with gendered patterns because the text reflects the society that produced it.",
+        harm: "Often representational harm, such as reinforcing stereotypes, though downstream decisions built on those patterns can also create allocative consequences.",
+        mistake: "If the data is accurate, the system is fair.",
+        better: "Accuracy with respect to history does not guarantee safety for deployment. Sometimes better prediction means better reproduction of an unjust past.",
+        mitigation: "Sampling alone may not help. We may need distributional redesign, stronger normative constraints, or to question whether prediction should be used in the first place."
+      },
+      {
+        color: "blue",
+        accent: "#2478e8",
+        soft: "#edf5ff",
+        visual: "representation",
+        badge: "Representation Bias",
+        study: "Shankar et al. · FAT/ML · 2017",
+        evidenceTitle: "A global benchmark with a heavily American center",
+        citation: "Geographic analysis of ImageNet photographs",
+        sourceUrl: "https://arxiv.org/abs/1711.08536",
+        enters: "Enters through target population definition or through uneven sampling from that population.",
+        title: "Representation Bias",
+        subtitle: "The development sample underrepresents some part of the population, so the system generalizes poorly for that group in actual use.",
+        why: "The paper treats this as more precise than simply saying a group is missing. The issue can live in target definition, subgroup rarity, or sampling limitation.",
+        example: "ImageNet overrepresents the United States and Western Europe and underrepresents other geographies, leading to weaker classifier performance on under-sampled countries.",
+        harm: "Poorer performance, misclassification, invisibility, and systematic under-service for groups missing from the sample distribution.",
+        mistake: "The model is bad for this group, so we should only change the loss function.",
+        better: "When the source is underrepresentation, the main question is about population definition and sampling, not only the model objective.",
+        mitigation: "Broaden the target frame, improve coverage, redesign sampling, or gather data that better reflects the intended use population."
+      },
+      {
+        color: "amber",
+        accent: "#c97810",
+        soft: "#fff5e7",
+        visual: "measurement",
+        badge: "Measurement Bias",
+        study: "Obermeyer et al. · Science · 2019",
+        evidenceTitle: "Cost was used as a proxy for health need",
+        citation: "Commercial population-health algorithm, 43,539 patients",
+        sourceUrl: "https://www.science.org/doi/10.1126/science.aax2342",
+        enters: "Appears when constructs are turned into flawed or unequal feature and label proxies.",
+        title: "Measurement Bias",
+        subtitle: "Features and labels are often proxies. Harm arises when those proxies are oversimplified, differentially measured, or differentially accurate across groups.",
+        why: "The paper emphasizes that labels are not automatically ground truth. They are often social records produced through unequal processes.",
+        example: "Risk assessment systems use arrest as a proxy for crime or risk. Because policing differs across communities, arrest is not the same measurement of underlying behavior for everyone.",
+        harm: "The model can learn from systematically distorted labels and then reproduce those distortions as though they were objective truth.",
+        mistake: "We can fix this by collecting more labeled data from the same process.",
+        better: "If the proxy itself is flawed, more of the same proxy can simply reproduce the same measurement problem.",
+        mitigation: "Redesign labels and features, improve annotation, use richer constructs, or build more context-aware measurement processes."
+      },
+      {
+        color: "violet",
+        accent: "#7158d9",
+        soft: "#f2efff",
+        visual: "aggregation",
+        badge: "Aggregation Bias",
+        study: "Koenecke et al. · PNAS · 2020",
+        evidenceTitle: "One speech recognizer, two very different error rates",
+        citation: "Five commercial ASR systems, 2,148 speech samples",
+        sourceUrl: "https://www.pnas.org/doi/10.1073/pnas.1915768117",
+        enters: "Appears when one model is used for heterogeneous groups whose input-output relationships differ in meaningful ways.",
+        title: "Aggregation Bias",
+        subtitle: "A one-size-fits-all model can flatten subgroup differences and become suboptimal or harmful even if multiple groups are present in the dataset.",
+        why: "The issue is not only who is present, but whether the model assumes everyone should be governed by the same learned mapping.",
+        example: "General NLP systems misread social media posts from gang-involved youth because local hashtags, emojis, and lyrical references have context-specific meanings.",
+        harm: "Misclassification, erasure of local context, and errors concentrated on groups whose structure is not captured by a single global model.",
+        mistake: "If we add more examples from the subgroup, the problem is solved.",
+        better: "Sometimes the core failure is not data quantity but the assumption that one decision rule should fit everyone.",
+        mitigation: "Use subgroup-aware modeling, richer representations, multitask or coupled learning, or explicit contextualization."
+      },
+      {
+        color: "green",
+        accent: "#258b58",
+        soft: "#eaf8f0",
+        visual: "learning",
+        badge: "Learning Bias",
+        study: "Bagdasaryan & Shmatikov · NeurIPS · 2019",
+        evidenceTitle: "Privacy noise can erase a small subgroup’s signal",
+        citation: "Differentially private skin-condition classifier",
+        sourceUrl: "https://arxiv.org/abs/1905.12101",
+        enters: "Appears during optimization when objectives or constraints amplify disparities across examples or groups.",
+        title: "Learning Bias",
+        subtitle: "Training choices are not neutral. The objective function, privacy mechanism, pruning strategy, or capacity constraint can privilege some performance tradeoffs over others.",
+        why: "The paper uses this category to show that harmful behavior can be produced by the learning process itself even when data collection looks acceptable.",
+        example: "Differential privacy and compact model constraints can reduce influence from underrepresented examples and worsen performance on them disproportionately.",
+        harm: "Underrepresented groups may experience amplified error rates because the training process optimizes for aggregate objectives or preserves frequent information preferentially.",
+        mistake: "If the dataset is okay, then training is just implementation detail.",
+        better: "Optimization objectives and constraints are design choices that shape who the model works well for.",
+        mitigation: "Revisit objectives, optimization, capacity allocation, regularization, or fairness-aware learning strategies targeted to the specific source."
+      },
+      {
+        color: "teal",
+        accent: "#16899b",
+        soft: "#e9f8fa",
+        visual: "evaluation",
+        badge: "Evaluation Bias",
+        study: "Buolamwini & Gebru · FAT* · 2018",
+        evidenceTitle: "Aggregate accuracy concealed an intersectional gap",
+        citation: "Gender Shades audit of three commercial classifiers",
+        sourceUrl: "https://proceedings.mlr.press/v81/buolamwini18a.html",
+        enters: "Appears when benchmark datasets or reported metrics do not reflect the actual use population or hide subgroup failure.",
+        title: "Evaluation Bias",
+        subtitle: "A model can look strong under evaluation and still fail in the world if the benchmark is narrow, skewed, or summarized with misleading aggregate metrics.",
+        why: "Benchmark culture encourages broad claims about model quality, but those claims become fragile when the benchmark is misaligned with use.",
+        example: "Commercial facial analysis tools looked competent on common benchmarks but performed far worse on dark-skinned women who were sparsely represented in those benchmarks.",
+        harm: "Weak systems can pass evaluation gates, research communities can optimize to the wrong target, and real users encounter failures that the benchmark never exposed.",
+        mistake: "The model got high accuracy, so we are done.",
+        better: "Evaluation is about the benchmark, the metrics, and subgroup visibility, not only about the model.",
+        mitigation: "Use better benchmarks, subgroup and intersectional reporting, richer metrics, and evaluation datasets that match intended use more closely."
+      },
+      {
+        color: "slate",
+        accent: "#53657a",
+        soft: "#eef2f6",
+        visual: "deployment",
+        badge: "Deployment Bias",
+        study: "Gaube et al. · npj Digital Medicine · 2021",
+        evidenceTitle: "Inaccurate AI advice changed physicians’ decisions",
+        citation: "Randomized chest X-ray experiment, 265 physicians",
+        sourceUrl: "https://www.nature.com/articles/s41746-021-00385-9",
+        enters: "Appears when the real-world use of the system diverges from the task for which it was built and evaluated.",
+        title: "Deployment Bias",
+        subtitle: "A model does not act alone. Human decision-makers, institutions, interfaces, and incentives reshape how the model affects the world after deployment.",
+        why: "This is the paper’s most explicitly sociotechnical source of harm, and it is often invisible when systems are evaluated as isolated predictors.",
+        example: "Criminal justice risk tools intended to estimate risk may be used off-label in sentencing or other decisions, producing consequences never modeled in the original framing.",
+        harm: "Automation bias, confirmation bias, off-label use, institutional misuse, and distorted downstream decisions can all emerge despite respectable isolated model performance.",
+        mistake: "If the model is good in testing, deployment is just engineering.",
+        better: "Deployment is a new source of harm with its own logic, and technical validity does not settle how people or institutions will use the system.",
+        mitigation: "Redesign interfaces, constrain use, support recourse, study human-model workflows, or decide that deployment is inappropriate."
+      }
+    ];
+
+    const caseFiles = {
+      historical: {
+        story: "<p>Imagine a hiring system that expands a recruiter’s query for “software engineer” using a pretrained word embedding. The embedding was not explicitly told that engineering is male. It learned from billions of words in which men and careers appeared together more often, while women and family appeared together more often.</p><p>That pattern may be an accurate statistical summary of the corpus. The harm begins when a system treats a historical regularity as a recommendation about who belongs in a role.</p>",
+        truth: "A model can be statistically faithful to its source material and normatively wrong for the future we want to create.",
+        facts: [
+          ["Corpus", "GloVe vectors trained on the 840-billion-token Common Crawl corpus"],
+          ["Representation", "2.2 million word types represented in 300 dimensions"],
+          ["Test", "WEAT compares cosine-distance associations between two target and two attribute word sets"],
+          ["Finding", "Male names–career / female names–family: effect size 1.81, permutation p < 10⁻³"],
+          ["External check", "Embedding gender associations for occupations correlated 0.90 with US labor-force percentages"],
+          ["What changed", "No biased label was required; the association already existed in ordinary language"]
+        ],
+        citation: "Aylin Caliskan, Joanna J. Bryson, and Arvind Narayanan. “Semantics derived automatically from language corpora contain human-like biases.” Science 356, 183–186 (2017).",
+        mechanism: [
+          ["01", "Society produces unequal roles and stereotypes."],
+          ["02", "Language records those regularities at enormous scale."],
+          ["03", "An embedding compresses co-occurrence into geometric distance."],
+          ["04", "A downstream system turns descriptive proximity into ranking or recommendation."]
+        ],
+        distinction: "This is historical bias when the corpus accurately reflects an unjust social pattern. If women were simply missing from the corpus, representation bias would also be involved.",
+        limits: [
+          "WEAT measures associations in a representation; it does not establish the intentions of individual authors.",
+          "The study examined static word embeddings, not every architecture or every contemporary language model.",
+          "A large effect size demonstrates association, not the precise downstream harm of a particular deployed product.",
+          "Removing one direction from an embedding does not necessarily remove all contextual or downstream manifestations of the stereotype."
+        ],
+        scenario: "A résumé search tool uses a language embedding trained on historical web text. Even with a balanced applicant pool, profiles containing women’s organizations are ranked farther from “leadership” terms. Where should the investigation begin?",
+        options: ["Representation bias: the applicant sample is unbalanced", "Historical bias: the representation learned a social stereotype", "Evaluation bias: the test set is too small"],
+        correct: 1,
+        feedback: "The applicant pool can be balanced and the pattern can still survive inside the learned representation. The evidence points first to historical bias, though evaluation should still test intersectional ranking outcomes."
+      },
+      representation: {
+        story: "<p>A user in Hyderabad uploaded a wedding photograph. A groom wearing traditional attire was labeled “chain mail,” “armor,” and “uniform.” The paper used this failure as a concrete illustration of a larger geographic fact: widely used image datasets were presented as broad representations of the visual world, but their photographs were concentrated in a small set of countries.</p><p>The system did not fail because Hyderabad was impossible to recognize. It failed after the development sample made some places, objects, and cultural contexts far more visible than others.</p>",
+        truth: "“Millions of images” says almost nothing about coverage if those images repeatedly come from the same places and social contexts.",
+        facts: [
+          ["Open Images", "About 9 million image URLs; roughly 2 million could be geolocated in the study"],
+          ["Concentration", "Nearly 60% of geolocated Open Images came from the United States and six Western European countries"],
+          ["United States", "32% of Open Images and 45% of the geolocated ImageNet subset"],
+          ["China", "Only about 1% in both datasets despite roughly 18.5% of world population"],
+          ["India", "2.1% of ImageNet and 1.2% of Open Images despite roughly 17.7% of world population"],
+          ["Performance", "Systems tended to perform better on images from the US and Western Europe"]
+        ],
+        citation: "Shreya Shankar, Yoni Halpern, Eric Breck, James Atwood, Jimbo Wilson, and D. Sculley. “No Classification without Representation: Assessing Geodiversity Issues in Open Data Sets for the Developing World.” FAT/ML (2017).",
+        mechanism: [
+          ["01", "Web collection inherits unequal internet access and platform participation."],
+          ["02", "Search terms and automated filters decide which images are retrievable."],
+          ["03", "The development distribution overrepresents a few countries and contexts."],
+          ["04", "A model encounters unfamiliar objects and scenes after global deployment."]
+        ],
+        distinction: "Representation bias concerns who and what entered the sample. A separate aggregation question asks whether one classifier can model all represented contexts with one mapping.",
+        limits: [
+          "Only images with usable location metadata could enter the geographic analysis, so the geolocated subset is not necessarily random.",
+          "The memorable Hyderabad example illustrates the mechanism but is not itself an estimate of global error frequency.",
+          "The study examined the datasets and models available at that time; dataset composition can change.",
+          "Country coverage does not guarantee coverage of class, ethnicity, rurality, language, or other within-country variation."
+        ],
+        scenario: "A crop-disease classifier was trained on 400,000 images, but 92% came from commercial farms using modern smartphones. It performs poorly for small farms using older devices. What is the first question?",
+        options: ["Was the target population sampled across farm and device contexts?", "Should the model use a larger neural network?", "Should accuracy be replaced by F1 score?"],
+        correct: 0,
+        feedback: "The dominant clue is coverage. Before changing the model or metric, inspect whether the development sample represented the farms and imaging conditions in intended use."
+      },
+      measurement: {
+        story: "<p>A commercial health algorithm helped decide which patients should receive extra care-management attention. Its designers wanted to identify people with high health needs, but the model predicted future healthcare cost instead. Cost was observable, standardized, and available at scale. Need was harder.</p><p>At the same predicted-risk score, Black patients were substantially sicker than White patients. Because unequal access and spending meant less money was spent on Black patients with the same level of illness, cost systematically understated their need.</p>",
+        truth: "A proxy can be accurately predicted and still be the wrong measurement of the construct that the decision morally depends on.",
+        facts: [
+          ["Population", "43,539 self-identified Black and White patients in an academic health system"],
+          ["Decision", "The score helped identify patients for a high-risk care-management program"],
+          ["Proxy", "Future healthcare cost stood in for future health need"],
+          ["Hidden disparity", "At the same score, Black patients had more chronic illness and worse biomarkers"],
+          ["Selection", "Black patients were 17.7% of those selected using the cost proxy"],
+          ["Counterfactual fix", "Using health need instead would raise that share to 46.5%"]
+        ],
+        citation: "Ziad Obermeyer, Brian Powers, Christine Vogeli, and Sendhil Mullainathan. “Dissecting racial bias in an algorithm used to manage the health of populations.” Science 366, 447–453 (2019).",
+        mechanism: [
+          ["01", "The desired construct is future health need."],
+          ["02", "The available label is future healthcare spending."],
+          ["03", "Access barriers make spending lower for equally ill Black patients."],
+          ["04", "The algorithm learns spending differences and presents them as need differences."]
+        ],
+        distinction: "The central failure is not merely that racial groups were sampled unequally. It is that the label had a different relationship to health need across groups.",
+        limits: [
+          "The analysis focused on one widely used commercial algorithm and one health-system setting.",
+          "Race is a social and political classification, not a biological explanation of the observed differences.",
+          "The paper does not imply that cost prediction is always invalid; it is invalid as a race-neutral proxy for need in this decision.",
+          "Changing the target reduces this source of bias but does not by itself repair unequal healthcare access."
+        ],
+        scenario: "A school predicts “student potential” using prior participation in paid enrichment programs. The model predicts the recorded label very well. Students from low-income families are deprioritized. What is the central diagnostic question?",
+        options: ["Is participation an equally valid measure of potential across income groups?", "Can the model be trained for more epochs?", "Does the sample contain exactly equal group sizes?"],
+        correct: 0,
+        feedback: "High predictive accuracy does not validate the construct. The key question is whether paid participation measures potential or measures access to opportunity."
+      },
+      aggregation: {
+        story: "<p>Automatic captions, voice assistants, and clinical dictation increasingly mediate access to information. Koenecke and colleagues sent the same kind of naturally spoken interview audio to five major commercial speech-recognition systems. Across every company, Black speakers experienced substantially more transcription errors.</p><p>The study’s follow-up analysis found that the disparity was concentrated in the acoustic models rather than language models, and errors increased with the density of features associated with African American Vernacular English.</p>",
+        truth: "A single global model can treat one group’s ordinary language as acoustic deviation rather than valid linguistic structure.",
+        facts: [
+          ["Speakers", "73 Black speakers and 42 White speakers, matched on age and gender"],
+          ["Audio", "19.8 hours of structured interviews from five US cities"],
+          ["Systems", "Amazon, Apple, Google, IBM, and Microsoft speech-to-text services"],
+          ["Mean word error", "35% for Black speakers versus 19% for White speakers"],
+          ["Severe failure", "Over 20% of Black-speaker snippets had WER above 50%; under 2% for White speakers"],
+          ["Mechanism clue", "The gap was primarily attributable to acoustic-model performance"]
+        ],
+        citation: "Allison Koenecke et al. “Racial disparities in automated speech recognition.” Proceedings of the National Academy of Sciences 117(14), 7684–7689 (2020).",
+        mechanism: [
+          ["01", "Speech varies systematically across dialect, region, and community."],
+          ["02", "A global acoustic model learns the most represented speech patterns best."],
+          ["03", "Dialect features are treated as noise or mismatch rather than structure."],
+          ["04", "Errors compound in captions, search, dictation, and voice interfaces."]
+        ],
+        distinction: "This study proves a performance disparity, not one unique cause. Representation bias in training speech is plausible; aggregation bias is the stronger diagnosis only if one shared mapping is itself inadequate for heterogeneous dialect structures.",
+        limits: [
+          "The experiment covered US English, five companies, and the product versions available in 2019.",
+          "The racial categories used in the study do not capture the full diversity of dialect, region, class, or multilingual speech.",
+          "Proprietary training data prevented direct measurement of the representation mechanism.",
+          "A subgroup model is not automatically the right remedy; it can introduce identity inference, privacy, and maintenance risks."
+        ],
+        scenario: "A hospital dictation system contains many examples from two dialect groups, yet one global acoustic model still loses group-specific phonological patterns. Which intervention best tests aggregation bias?",
+        options: ["Collect more examples but keep the identical model", "Compare a shared model with coupled or dialect-aware models", "Report only the overall word-error rate"],
+        correct: 1,
+        feedback: "Aggregation bias concerns the assumption of one mapping. A controlled comparison with models that can represent subgroup structure directly tests that assumption."
+      },
+      learning: {
+        story: "<p>Differential privacy protects individuals by clipping each training example’s gradient and adding noise before the optimizer updates the model. That is a real and valuable protection. But examples from a small subgroup contribute less total signal, so clipping and noise can suppress their already-rare patterns more severely.</p><p>Bagdasaryan and Shmatikov deliberately constructed a skin-condition task with 29,500 lighter-skin images and only 500 darker-skin images. Under private training, accuracy for the small subgroup deteriorated disproportionately.</p>",
+        truth: "A socially valuable training constraint can distribute its utility cost unequally; privacy and fairness are not automatically aligned.",
+        facts: [
+          ["Training data", "29,500 lighter-skin images and 500 darker-skin images"],
+          ["Test data", "5,000 examples with the same subgroup split"],
+          ["Model", "ResNet-18 trained for 60 epochs"],
+          ["Private method", "DP-SGD clips per-example gradients and adds Gaussian noise"],
+          ["Reported settings", "Privacy budgets included ε = 5.69 and ε = 9.16 with δ = 10⁻⁶"],
+          ["Finding", "The underrepresented subgroup suffered a much larger private-training accuracy loss"]
+        ],
+        citation: "Eugene Bagdasaryan, Omid Poursaeed, and Vitaly Shmatikov. “Differential Privacy Has Disparate Impact on Model Accuracy.” NeurIPS 2019.",
+        mechanism: [
+          ["01", "A subgroup has fewer examples, so its gradient signal is rare."],
+          ["02", "Per-example clipping limits unusually informative updates."],
+          ["03", "Noise is added to the aggregate update for privacy."],
+          ["04", "The majority signal survives more reliably than the minority signal."]
+        ],
+        distinction: "The 29,500/500 split is representation imbalance. Learning bias is the additional disparity created or amplified by the private optimization process relative to non-private training.",
+        limits: [
+          "The skin-condition split was an experimental construction designed to isolate disparate impact.",
+          "The result is not an argument against privacy; it shows that privacy accounting alone does not guarantee equitable utility.",
+          "The magnitude depends on architecture, clipping, noise, subgroup size, privacy budget, and task.",
+          "Publishing subgroup metrics can itself create privacy risks when groups are very small."
+        ],
+        scenario: "Two groups have unequal baseline accuracy. After applying DP-SGD, the majority loses 2 points while the smaller group loses 18 points. What makes this a learning-bias concern?",
+        options: ["The private optimizer amplified the disparity beyond the data baseline", "The labels must be fraudulent", "Any use of privacy is inherently unfair"],
+        correct: 0,
+        feedback: "The learning-stage evidence is the differential change caused by the optimization constraint. The right response is joint privacy–utility–fairness analysis, not abandoning privacy."
+      },
+      evaluation: {
+        story: "<p>Commercial gender-classification products were often described using strong overall accuracy. Gender Shades asked a different question: who exactly was represented in benchmark data, and what happened when performance was reported at the intersection of perceived gender and skin type?</p><p>The researchers built the Pilot Parliaments Benchmark from parliamentarians in six African and European countries, balancing perceived gender and using Fitzpatrick skin types to create lighter- and darker-skin groups. The aggregate story fractured when the results were disaggregated.</p>",
+        truth: "An average can be numerically correct and still conceal the people for whom the system is unsafe.",
+        facts: [
+          ["Benchmark", "Pilot Parliaments Benchmark with 1,270 individuals"],
+          ["Countries", "Rwanda, Senegal, South Africa, Iceland, Finland, and Sweden"],
+          ["Balance", "Designed to be more balanced by perceived gender and skin type"],
+          ["Products", "Microsoft, IBM, and Face++ commercial classifiers"],
+          ["Best subgroup", "Error as low as 0.8% for lighter-skinned men"],
+          ["Worst subgroup", "Error as high as 34.7% for darker-skinned women"]
+        ],
+        citation: "Joy Buolamwini and Timnit Gebru. “Gender Shades: Intersectional Accuracy Disparities in Commercial Gender Classification.” Proceedings of Machine Learning Research 81, 1–15 (2018).",
+        mechanism: [
+          ["01", "Existing benchmarks skew toward lighter-skinned subjects."],
+          ["02", "A single aggregate metric averages over unlike subgroup errors."],
+          ["03", "Strong performance on common groups dominates the headline number."],
+          ["04", "A product appears ready while an intersectional subgroup faces severe failure."]
+        ],
+        distinction: "Evaluation bias concerns the benchmark and reporting process. The underlying product may also contain representation, measurement, or learning bias; the evaluation failure is that those problems remained hidden.",
+        limits: [
+          "The task used binary commercial gender classification and externally perceived labels, which do not represent gender identity.",
+          "Fitzpatrick skin type was developed for dermatology and is an imperfect proxy for socially perceived skin color.",
+          "The benchmark included public officials from six countries, not a random sample of the global population.",
+          "The audit measured classification disparities; it did not endorse inferring gender from faces."
+        ],
+        scenario: "A face system reports 96% overall accuracy. The benchmark is 80% light-skinned men, and no intersectional results are shown. What should block deployment?",
+        options: ["Nothing; 96% is high", "Require subgroup counts, uncertainty, and intersectional error rates", "Replace accuracy with one different aggregate metric"],
+        correct: 1,
+        feedback: "The central failure is visibility. A different single average can still hide the same subgroup. Evaluation must reveal who is in the benchmark and who bears each kind of error."
+      },
+      deployment: {
+        story: "<p>In a randomized experiment, 265 physicians reviewed eight chest X-ray cases. Some saw no advice; others saw advice presented as coming from an AI system or from another physician. The advice could be correct or intentionally inaccurate.</p><p>When inaccurate advice was shown, diagnostic accuracy fell. Physicians followed incorrect AI advice 41.73% of the time. The model did not need to make every decision autonomously to cause harm; its placement inside the human workflow changed the final decision.</p>",
+        truth: "A prediction’s real effect is produced by the model, interface, user, authority cues, time pressure, and institution together.",
+        facts: [
+          ["Participants", "265 physicians completed the experiment"],
+          ["Task", "Eight chest X-rays with four possible diagnoses each"],
+          ["Conditions", "No advice, advice attributed to AI, or advice attributed to another physician"],
+          ["Correct advice", "Produced a large improvement over the no-advice condition"],
+          ["Inaccurate AI", "Physicians followed it in 41.73% of decisions"],
+          ["Inaccurate physician", "Physicians followed it in 38.11% of decisions"]
+        ],
+        citation: "Susanne Gaube et al. “Do as AI say: susceptibility in deployment of clinical decision-aids.” npj Digital Medicine 4, 31 (2021).",
+        mechanism: [
+          ["01", "A model output is presented with an authority cue."],
+          ["02", "The interface makes accepting advice easier than interrogating it."],
+          ["03", "Humans anchor on the recommendation, including when it is wrong."],
+          ["04", "The combined human–AI system produces a different error profile than either alone."]
+        ],
+        distinction: "Deployment bias is not established by model error alone. It appears when use context, interface, incentives, or off-label practice changes how predictions become decisions.",
+        limits: [
+          "This was an experimental online task, not live clinical care with full patient histories and institutional accountability.",
+          "Participants were physicians, but susceptibility can differ by specialty, expertise, workload, and interface design.",
+          "The study compared advice sources; it did not test every form of explanation or uncertainty display.",
+          "Human review is not a universal safety guarantee. Review quality depends on whether people can detect and challenge errors."
+        ],
+        scenario: "A risk score validated for treatment planning is displayed during sentencing. Judges see a red “high risk” badge without uncertainty or permitted-use guidance. Where is the clearest new source of harm?",
+        options: ["Deployment bias: off-label use and interface framing reshape the decision", "Historical bias only: the model used old data", "No new source: validation transfers automatically"],
+        correct: 0,
+        feedback: "Even a technically valid score can become harmful when used for a different decision, by different actors, with authority-amplifying interface cues and no recourse."
+      }
+    };
+
+    const mappings = [
+      {
+        formula: "s : Xᴺ -> Xⁿ",
+        name: "Sampling function",
+        short: "Maps the target population to the development sample.",
+        detail: "This is where representation bias often lives. The question is whether the sample reflects the population the system is supposed to reason about, and whether some subgroups become rare or invisible."
+      },
+      {
+        formula: "r : X -> X'",
+        name: "Feature projection",
+        short: "Turns underlying feature constructs into measured feature proxies.",
+        detail: "The paper uses this to show that we do not usually observe pure constructs. We observe measured stand-ins. If those stand-ins are crude or uneven across groups, measurement bias enters here."
+      },
+      {
+        formula: "t : Y -> Y'",
+        name: "Label projection",
+        short: "Turns underlying label constructs into measured label proxies.",
+        detail: "This is especially important because many labels are not true ground truth. Arrest, diagnosis, rating, or repayment history may all be imperfect proxies for the actual construct of interest."
+      },
+      {
+        formula: "f_ideal : X -> Y",
+        name: "Ideal function",
+        short: "The target mapping we would want if we had the true constructs directly.",
+        detail: "This is the conceptual model of the real task. The paper contrasts it with the function we actually learn from proxies in practice."
+      },
+      {
+        formula: "f_actual : X' -> Y'",
+        name: "Actual learned model",
+        short: "The real model trained on measured proxies from the development sample.",
+        detail: "Aggregation bias and learning bias often show up here. The model may flatten meaningful subgroup structure or optimize a loss that disadvantages some groups."
+      },
+      {
+        formula: "k : f, X'ₘ, Y'ₘ -> E",
+        name: "Evaluation function",
+        short: "Computes metrics from the learned model and evaluation data.",
+        detail: "Evaluation bias lives here. The benchmark data and metric design determine what the system appears to be good at, and what remains hidden."
+      },
+      {
+        formula: "h : f, x, z -> d",
+        name: "Deployment decision function",
+        short: "Turns model output plus context into a real-world decision.",
+        detail: "This is where deployment bias becomes visible. The extra term z represents human judgment, institutional context, workflow rules, interfaces, and external environment."
+      }
+    ];
+
+    const stageGrid = document.getElementById("stage-grid");
+    const stageDetail = document.getElementById("stage-detail");
+    const sourceGrid = document.getElementById("source-grid");
+    const biasMap = document.getElementById("bias-map");
+    const mappingGrid = document.getElementById("mapping-grid");
+    const mappingDetail = document.getElementById("mapping-detail");
+
+    function renderStages() {
+      stageGrid.innerHTML = lifecycleStages.map((stage, i) => `
+        <button class="stage-card ${i === 0 ? "active" : ""}" data-stage="${i}">
+          <strong>${stage.name}</strong>
+          <span>${stage.summary}</span>
+        </button>
+      `).join("");
+      updateStage(0);
+      stageGrid.querySelectorAll(".stage-card").forEach(btn => {
+        btn.addEventListener("click", () => updateStage(Number(btn.dataset.stage)));
+      });
+    }
+
+    function updateStage(index) {
+      stageGrid.querySelectorAll(".stage-card").forEach((btn, i) => btn.classList.toggle("active", i === index));
+      const stage = lifecycleStages[index];
+      stageDetail.innerHTML = `
+        <h4>${stage.name}</h4>
+        <p>${stage.summary}</p>
+        <div class="detail-grid">
+          <div class="detail-card">
+            <strong>Typical decisions made here</strong>
+            <span>${stage.decisions}</span>
+          </div>
+          <div class="detail-card">
+            <strong>What people often ignore</strong>
+            <span>${stage.overlooked}</span>
+          </div>
+          <div class="detail-card">
+            <strong>Harms often linked here</strong>
+            <span>${stage.harms}</span>
+          </div>
+        </div>
+      `;
+    }
+
+    function badgeClass(color) {
+      return color === "amber" ? "amber" :
+             color === "violet" ? "violet" :
+             color === "green" ? "green" :
+             color === "teal" ? "teal" :
+             color === "slate" ? "slate" :
+             color === "red" ? "red" : "blue";
+    }
+
+    function renderEvidenceVisual(src) {
+      if (src.visual === "historical") {
+        return `
+          <div class="semantic-field">
+            <div class="word-cluster hot">
+              <span class="word-chip">executive</span><span class="word-chip">management</span>
+              <span class="word-chip">professional</span><span class="word-chip">salary</span>
+              <span class="word-chip">career</span><span class="word-chip">office</span>
+            </div>
+            <div class="semantic-score">
+              <strong>1.81</strong>
+              <span>effect size</span>
+            </div>
+            <div class="word-cluster">
+              <span class="word-chip">home</span><span class="word-chip">parents</span>
+              <span class="word-chip">children</span><span class="word-chip">family</span>
+              <span class="word-chip">wedding</span><span class="word-chip">relatives</span>
+            </div>
+          </div>`;
+      }
+
+      if (src.visual === "representation") {
+        return `
+          <div class="geo-viz">
+            <div class="dot-map" aria-label="Stylized world map showing concentrated geographic coverage">
+              <i class="map-dot" style="--x:18%;--y:35%;--size:54px"></i>
+              <i class="map-dot" style="--x:44%;--y:26%;--size:25px"></i>
+              <i class="map-dot muted" style="--x:63%;--y:39%;--size:18px"></i>
+              <i class="map-dot muted" style="--x:54%;--y:59%;--size:13px"></i>
+              <i class="map-dot muted" style="--x:76%;--y:67%;--size:11px"></i>
+              <i class="map-dot muted" style="--x:36%;--y:68%;--size:10px"></i>
+            </div>
+            <div class="bar-list">
+              <div class="bar-row"><span>United States</span><div class="bar-track"><div class="bar-fill" style="--value:90%"></div></div><strong>45%</strong></div>
+              <div class="bar-row"><span>Great Britain</span><div class="bar-track"><div class="bar-fill" style="--value:15.2%;--bar:#75a9e7"></div></div><strong>7.6%</strong></div>
+              <div class="bar-row"><span>All others</span><div class="bar-track"><div class="bar-fill" style="--value:94.8%;--bar:#b7c8da"></div></div><strong>47.4%</strong></div>
+            </div>
+          </div>`;
+      }
+
+      if (src.visual === "measurement") {
+        return `
+          <div class="proxy-viz">
+            <div class="proxy-box"><strong>True construct</strong><span>Who needs more healthcare?</span></div>
+            <div class="proxy-arrow">→</div>
+            <div class="proxy-box wrong"><strong>Measured proxy</strong><span>Who costs more today?</span></div>
+            <div class="selection-bars">
+              <div class="bar-row"><span>Black patients selected by cost score</span><div class="bar-track"><div class="bar-fill" style="--value:38%;--bar:#d47d14"></div></div><strong>17.7%</strong></div>
+              <div class="bar-row"><span>Selected if actual need were used</span><div class="bar-track"><div class="bar-fill" style="--value:100%;--bar:#2f8a5f"></div></div><strong>46.5%</strong></div>
+            </div>
+          </div>`;
+      }
+
+      if (src.visual === "aggregation") {
+        return `
+          <div class="wer-viz">
+            <div class="wave-row">
+              <span>White speakers</span><div class="wave" style="--wave:#72a6df"></div><strong>19% WER</strong>
+            </div>
+            <div class="wave-row">
+              <span>Black speakers</span><div class="wave" style="--wave:#7158d9"></div><strong>35% WER</strong>
+            </div>
+            <div class="bar-list" style="margin-top:28px">
+              <div class="bar-row"><span>Error gap</span><div class="bar-track"><div class="bar-fill" style="--value:100%;--bar:linear-gradient(90deg,#72a6df,#7158d9)"></div></div><strong>+16 pp</strong></div>
+            </div>
+          </div>`;
+      }
+
+      if (src.visual === "learning") {
+        return `
+          <div class="privacy-viz">
+            <div class="privacy-groups">
+              <div class="privacy-group"><strong>29,500</strong><span>lighter-skin training images</span></div>
+              <div class="privacy-group minority"><strong>500</strong><span>darker-skin training images · 1.7%</span></div>
+            </div>
+            <div class="bar-list" style="margin-bottom:24px">
+              <div class="bar-row"><span>Non-private training</span><div class="bar-track"><div class="bar-fill" style="--value:88%;--bar:#77b99a"></div></div><strong>baseline</strong></div>
+              <div class="bar-row"><span>Private: majority</span><div class="bar-track"><div class="bar-fill" style="--value:77%;--bar:#9db5c9"></div></div><strong>smaller loss</strong></div>
+              <div class="bar-row"><span>Private: minority</span><div class="bar-track"><div class="bar-fill" style="--value:46%;--bar:#258b58"></div></div><strong>larger loss</strong></div>
+            </div>
+            <div class="noise-layers">
+              <div><div class="signal-box" style="--signal:82%;--noise:.08"></div>frequent signal survives</div>
+              <span>+ privacy noise</span>
+              <div><div class="signal-box" style="--signal:18%;--noise:.34"></div>rare signal is obscured</div>
+            </div>
+          </div>`;
+      }
+
+      if (src.visual === "evaluation") {
+        return `
+          <div class="error-matrix">
+            <div class="matrix-grid">
+              <div class="matrix-cell matrix-head"></div>
+              <div class="matrix-cell matrix-head">Lighter skin</div>
+              <div class="matrix-cell matrix-head">Darker skin</div>
+              <div class="matrix-cell matrix-head">Male</div>
+              <div class="matrix-cell"><strong>0.8%</strong>lowest reported error</div>
+              <div class="matrix-cell">higher error than lighter men</div>
+              <div class="matrix-cell matrix-head">Female</div>
+              <div class="matrix-cell">higher error than lighter men</div>
+              <div class="matrix-cell danger"><strong>34.7%</strong>highest reported error</div>
+            </div>
+          </div>`;
+      }
+
+      return `
+        <div class="deployment-viz">
+          <div class="decision-flow">
+            <div class="decision-node">Chest X-ray</div><div class="decision-arrow">→</div>
+            <div class="decision-node danger">Incorrect AI advice</div><div class="decision-arrow">→</div>
+            <div class="decision-node">Physician diagnosis</div>
+          </div>
+          <div class="error-compare">
+            <div class="error-stat"><strong>41.73%</strong><span>followed inaccurate AI advice</span></div>
+            <div class="error-stat bad"><strong>38.11%</strong><span>followed inaccurate physician advice</span></div>
+          </div>
+          <div class="bar-list" style="margin-top:26px">
+            <div class="bar-row"><span>Experiment</span><div class="bar-track"><div class="bar-fill" style="--value:100%;--bar:#53657a"></div></div><strong>265 MDs</strong></div>
+          </div>
+        </div>`;
+    }
+
+    function renderCaseFile(src, index) {
+      const baseId = `case-${index}`;
+      return `
+        <button class="case-toggle" aria-expanded="false" aria-controls="${baseId}">Open the complete research case file</button>
+        <div class="case-file" id="${baseId}" data-case-index="${index}" hidden></div>`;
+    }
+
+    function renderCaseFileContents(src, index) {
+      const file = caseFiles[src.visual];
+      return `
+          <div class="case-tabs" role="tablist" aria-label="${src.title} case file sections">
+            ${["Real story", "Study design", "Mechanism", "Diagnose it", "Limits"].map((label, tabIndex) => `
+              <button class="case-tab" role="tab" aria-selected="${tabIndex === 0}" data-case-tab="${tabIndex}">${label}</button>
+            `).join("")}
+          </div>
+
+          <section class="case-panel" role="tabpanel" data-case-panel="0">
+            <div class="case-story-grid">
+              <div class="case-prose">
+                <h4>What happened in the real world</h4>
+                ${file.story}
+              </div>
+              <aside class="truth-box">
+                <span>The deeper truth</span>
+                <strong>${file.truth}</strong>
+              </aside>
+            </div>
+          </section>
+
+          <section class="case-panel" role="tabpanel" data-case-panel="1" hidden>
+            <div class="case-study-grid">
+              <div>
+                <h4>How the evidence was produced</h4>
+                <div class="fact-grid">
+                  ${file.facts.map(fact => `<div class="fact-card"><span>${fact[0]}</span><strong>${fact[1]}</strong></div>`).join("")}
+                </div>
+              </div>
+              <aside class="citation-box">
+                <span>Primary reference</span>
+                <cite>${file.citation}</cite>
+                <a href="${src.sourceUrl}" target="_blank" rel="noopener">Read the original study ↗</a>
+              </aside>
+            </div>
+          </section>
+
+          <section class="case-panel" role="tabpanel" data-case-panel="2" hidden>
+            <h4>Trace the mechanism, not just the outcome</h4>
+            <div class="mechanism-chain">
+              ${file.mechanism.map(step => `<div class="mechanism-step"><b>${step[0]}</b>${step[1]}</div>`).join("")}
+            </div>
+            <div class="diagnostic-note"><strong>Why this diagnosis:</strong> ${file.distinction}</div>
+          </section>
+
+          <section class="case-panel" role="tabpanel" data-case-panel="3" hidden>
+            <div class="scenario-box">
+              <h4>Now diagnose a new situation</h4>
+              <p>${file.scenario}</p>
+              <div class="scenario-options">
+                ${file.options.map((option, optionIndex) => `<button class="scenario-option" data-option="${optionIndex}" data-correct="${file.correct}">${option}</button>`).join("")}
+              </div>
+              <div class="scenario-feedback" hidden>${file.feedback}</div>
+            </div>
+          </section>
+
+          <section class="case-panel" role="tabpanel" data-case-panel="4" hidden>
+            <h4>What this study does not prove</h4>
+            <ul class="limit-list">${file.limits.map(limit => `<li>${limit}</li>`).join("")}</ul>
+          </section>`;
+    }
+
+    function wireCaseFile(caseFile) {
+      const tabs = [...caseFile.querySelectorAll(".case-tab")];
+      const panels = [...caseFile.querySelectorAll(".case-panel")];
+      tabs.forEach(tab => {
+        tab.addEventListener("click", () => {
+          const selected = Number(tab.dataset.caseTab);
+          tabs.forEach((item, tabIndex) => item.setAttribute("aria-selected", String(tabIndex === selected)));
+          panels.forEach((panel, panelIndex) => panel.hidden = panelIndex !== selected);
+        });
+      });
+
+      caseFile.querySelectorAll(".scenario-option").forEach(option => {
+        option.addEventListener("click", () => {
+          const options = [...caseFile.querySelectorAll(".scenario-option")];
+          const correct = Number(option.dataset.correct);
+          options.forEach((item, optionIndex) => {
+            item.classList.toggle("correct", optionIndex === correct);
+            item.classList.toggle("wrong", item === option && optionIndex !== correct);
+            item.disabled = true;
+          });
+          caseFile.querySelector(".scenario-feedback").hidden = false;
+        });
+      });
+    }
+
+    function renderSources() {
+      biasMap.innerHTML = sourceData.map((src, i) => `
+        <div class="bias-tag" style="--tag-color:${src.accent}">
+          <span>0${i + 1}</span>
+          <strong>${src.title.replace(" Bias", "")}</strong>
+        </div>
+      `).join("");
+
+      sourceGrid.innerHTML = sourceData.map((src, i) => `
+        <article class="evidence-card" style="--accent:${src.accent};--accent-soft:${src.soft}">
+          <div class="evidence-layout">
+            <div class="evidence-copy">
+              <span class="evidence-number">Source 0${i + 1} / ${src.badge}</span>
+              <h3>${src.title}</h3>
+              <p class="evidence-definition">${src.subtitle}</p>
+              <div class="evidence-entry">
+                <span>Where it enters</span>
+                <p>${src.enters}</p>
+              </div>
+              <div class="evidence-takeaway"><strong>Do not confuse the symptom with the source.</strong><br>${src.better}</div>
+            </div>
+            <div class="evidence-viz">
+              <div>
+                <div class="study-label"><span>Evidence / real study</span><strong>${src.study}</strong></div>
+                <h4 class="viz-title">${src.evidenceTitle}</h4>
+                <p class="viz-subtitle">${src.citation}</p>
+              </div>
+              <div class="viz-canvas">${renderEvidenceVisual(src)}</div>
+              <div class="study-source">
+                <span>${src.visual === "learning" ? "Dataset counts and privacy settings come from the study; the signal bars schematically explain the reported disparity and are not accuracy values." : "Values are reproduced or calculated directly from the cited study. Percentage-point differences are not relative percentage changes."}</span>
+                <a href="${src.sourceUrl}" target="_blank" rel="noopener">Open study ↗</a>
+              </div>
+            </div>
+          </div>
+          ${renderCaseFile(src, i)}
+        </article>
+      `).join("");
+
+      sourceGrid.querySelectorAll(".evidence-card").forEach((card, index) => {
+        const toggle = card.querySelector(".case-toggle");
+        const caseFile = card.querySelector(".case-file");
+        toggle.addEventListener("click", () => {
+          const isOpen = toggle.getAttribute("aria-expanded") === "true";
+          if (!isOpen && !caseFile.dataset.loaded) {
+            caseFile.innerHTML = renderCaseFileContents(sourceData[index], index);
+            caseFile.dataset.loaded = "true";
+            wireCaseFile(caseFile);
+          }
+          toggle.setAttribute("aria-expanded", String(!isOpen));
+          toggle.textContent = isOpen ? "Open the complete research case file" : "Close the research case file";
+          caseFile.hidden = isOpen;
+        });
+      });
+    }
+
+    function renderMappings() {
+      mappingGrid.innerHTML = mappings.map((m, i) => `
+        <button class="mapping-card ${i === 0 ? "active" : ""}" data-map="${i}">
+          <span class="formula">${m.formula}</span>
+          <strong>${m.name}</strong>
+          <span>${m.short}</span>
+        </button>
+      `).join("");
+      updateMapping(0);
+      mappingGrid.querySelectorAll(".mapping-card").forEach(btn => {
+        btn.addEventListener("click", () => updateMapping(Number(btn.dataset.map)));
+      });
+    }
+
+    function updateMapping(index) {
+      mappingGrid.querySelectorAll(".mapping-card").forEach((btn, i) => btn.classList.toggle("active", i === index));
+      const m = mappings[index];
+      mappingDetail.innerHTML = `
+        <h4>${m.name}</h4>
+        <p><span class="mono">${m.formula}</span></p>
+        <p>${m.detail}</p>
+      `;
+    }
+
+    function wireQuiz() {
+      document.querySelectorAll(".quiz-btn").forEach(btn => {
+        btn.addEventListener("click", () => {
+          const answer = document.getElementById(btn.dataset.target);
+          answer.classList.add("show");
+        });
+      });
+    }
+
+    function wireNav() {
+      const navLinks = Array.from(document.querySelectorAll(".nav a"));
+      const sections = navLinks.map(link => document.querySelector(link.getAttribute("href"))).filter(Boolean);
+
+      function updateActiveNav() {
+        let current = sections[0];
+        for (const section of sections) {
+          if (section.getBoundingClientRect().top <= 120) current = section;
+        }
+        navLinks.forEach(link => {
+          link.classList.toggle("active", link.getAttribute("href") === `#${current.id}`);
+        });
+      }
+
+      updateActiveNav();
+      window.addEventListener("scroll", updateActiveNav, { passive: true });
+    }
+
+    renderStages();
+    renderSources();
+    renderMappings();
+    wireQuiz();
+    wireNav();
+  </script>
+</body>
+</html>

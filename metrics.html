@@ -1,0 +1,1003 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Classification Metrics — A Complete Teaching Guide</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{
+  --bg:#f6f8ff;
+  --card:#ffffff;
+  --primary:#2563eb;
+  --primary-light:#eff6ff;
+  --primary-dark:#1d4ed8;
+  --green:#059669;
+  --amber:#d97706;
+  --red:#dc2626;
+  --purple:#7c3aed;
+  --text:#172033;
+  --muted:#5b6780;
+  --border:#dbe4f0;
+  --code:#0f172a;
+  --shadow:0 8px 30px rgba(37,99,235,.08);
+}
+html{scroll-behavior:smooth}
+body{font-family:'Inter',sans-serif;background:linear-gradient(180deg,#eef4ff 0%,#f8fbff 180px,#f6f8ff 100%);color:var(--text);line-height:1.7}
+a{color:var(--primary);text-decoration:none}
+.site-header{background:linear-gradient(135deg,#1d4ed8 0%,#4f46e5 55%,#7c3aed 100%);padding:52px 24px 42px;position:relative;overflow:hidden}
+.site-header::before{content:'';position:absolute;inset:0;background:radial-gradient(circle at 20% 20%,rgba(255,255,255,.18),transparent 28%),radial-gradient(circle at 80% 15%,rgba(255,255,255,.12),transparent 24%)}
+.header-inner{position:relative;max-width:1100px;margin:0 auto}
+.badge{display:inline-block;padding:6px 12px;border-radius:999px;background:rgba(255,255,255,.14);color:#fff;border:1px solid rgba(255,255,255,.22);font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;margin-bottom:16px}
+.site-header h1{font-size:clamp(30px,5vw,50px);line-height:1.05;font-weight:800;color:#fff;letter-spacing:-.03em;max-width:820px}
+.site-header p{margin-top:14px;max-width:720px;color:rgba(255,255,255,.82);font-size:16px}
+.nav{position:sticky;top:0;z-index:20;background:rgba(255,255,255,.92);backdrop-filter:blur(10px);border-bottom:1px solid var(--border)}
+.nav-inner{max-width:1100px;margin:0 auto;padding:0 24px;display:flex;gap:10px;overflow:auto;scrollbar-width:none}
+.nav-inner::-webkit-scrollbar{display:none}
+.nav a{display:inline-flex;align-items:center;padding:13px 2px;border-bottom:2px solid transparent;color:var(--muted);font-size:13px;font-weight:600;white-space:nowrap}
+.nav a:hover{color:var(--primary);border-bottom-color:var(--primary)}
+.container{max-width:1100px;margin:0 auto;padding:34px 24px 64px}
+.intro-grid{display:grid;grid-template-columns:1.15fr .85fr;gap:20px;margin-bottom:26px}
+.card{background:var(--card);border:1px solid var(--border);border-radius:20px;padding:26px;box-shadow:var(--shadow)}
+.card h2,.section h2{font-size:26px;line-height:1.15;letter-spacing:-.02em;margin-bottom:12px}
+.card h3,.section h3{font-size:20px;line-height:1.25;letter-spacing:-.02em;margin:18px 0 10px}
+.card h4,.section h4{font-size:17px;line-height:1.3;margin:16px 0 8px}
+.eyebrow{display:inline-flex;align-items:center;gap:8px;font-size:12px;font-weight:700;color:var(--primary);text-transform:uppercase;letter-spacing:.08em;margin-bottom:12px}
+.lead{font-size:15px;color:var(--muted)}
+.quick-list{display:grid;gap:12px}
+.quick-item{padding:14px 16px;border-radius:14px;background:#f8fbff;border:1px solid var(--border)}
+.quick-item strong{display:block;font-size:13px;margin-bottom:4px}
+.quick-item p{font-size:13px;color:var(--muted)}
+.section{margin-top:34px;scroll-margin-top:80px}
+.section-header{display:flex;align-items:flex-start;gap:16px;margin-bottom:18px}
+.section-num{width:52px;height:52px;border-radius:14px;display:flex;align-items:center;justify-content:center;background:linear-gradient(135deg,#1d4ed8,#7c3aed);color:#fff;font-size:15px;font-weight:800;flex-shrink:0}
+.section-subtitle{font-size:14px;color:var(--muted);margin-top:4px}
+.callout{background:var(--primary-light);border-left:4px solid var(--primary);padding:15px 18px;border-radius:0 14px 14px 0;color:#1e3a8a;font-size:14px;margin:16px 0}
+.callout strong{font-weight:700}
+.warning{background:#fff7ed;border-left-color:var(--amber);color:#9a3412}
+.danger{background:#fef2f2;border-left-color:var(--red);color:#991b1b}
+.success{background:#ecfdf5;border-left-color:var(--green);color:#065f46}
+.grid-2{display:grid;grid-template-columns:1fr 1fr;gap:20px}
+.grid-3{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
+.pre-block{
+  background:#0f172a;
+  color:#e2e8f0;
+  border-radius:16px;
+  padding:18px 20px;
+  overflow:auto;
+  font-family:'JetBrains Mono',monospace;
+  font-size:13px;
+  line-height:1.7;
+  border:1px solid #1e293b;
+  white-space:pre;
+  word-break:normal;
+  overflow-wrap:normal;
+}
+.formula{
+  background:#f8fbff;
+  border:1px solid var(--border);
+  border-radius:16px;
+  padding:16px 18px;
+  font-family:'JetBrains Mono',monospace;
+  font-size:13px;
+  overflow:auto;
+  white-space:pre-wrap;
+}
+.table-wrap{overflow:auto;border:1px solid var(--border);border-radius:16px;background:#fff}
+table{width:100%;border-collapse:collapse}
+th,td{padding:12px 14px;border-bottom:1px solid var(--border);text-align:left;vertical-align:top;font-size:14px}
+th{background:#f8fbff;color:#4b5872;font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.06em}
+tr:last-child td{border-bottom:none}
+.stat-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:14px;margin-top:16px}
+.stat-card{background:#f8fbff;border:1px solid var(--border);border-radius:16px;padding:16px;text-align:center}
+.stat-card strong{display:block;font-size:28px;color:var(--primary);line-height:1.05}
+.stat-card span{display:block;margin-top:6px;font-size:12px;color:var(--muted);font-weight:600}
+.metric-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:16px}
+.metric-card{background:#fff;border:1px solid var(--border);border-radius:16px;padding:18px}
+.metric-card strong{display:block;font-size:15px;margin-bottom:8px}
+.metric-card p{font-size:13px;color:var(--muted)}
+.pill-row{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
+.pill{display:inline-flex;padding:5px 10px;border-radius:999px;font-size:11px;font-weight:700}
+.pill-blue{background:#dbeafe;color:#1d4ed8}
+.pill-green{background:#dcfce7;color:#166534}
+.pill-red{background:#fee2e2;color:#b91c1c}
+.pill-amber{background:#fef3c7;color:#b45309}
+.pill-purple{background:#ede9fe;color:#6d28d9}
+.footnote{font-size:12px;color:var(--muted);margin-top:10px}
+.divider{height:1px;background:linear-gradient(90deg,transparent,var(--border),transparent);margin:32px 0}
+footer{max-width:1100px;margin:0 auto;padding:0 24px 56px;color:var(--muted);font-size:13px}
+ul,ol{padding-left:20px}
+li{margin:6px 0}
+@media(max-width:900px){
+  .intro-grid,.grid-2,.grid-3{grid-template-columns:1fr}
+}
+</style>
+</head>
+<body>
+
+<header class="site-header">
+  <div class="header-inner">
+    <div class="badge">Standalone Tutorial</div>
+    <h1>Classification Metrics — A Complete Teaching Guide</h1>
+    <p>A full teaching page for confusion matrices, Type I and Type II errors, accuracy, precision, recall, F1, weighted F1, macro F1, and how to choose the right metric for the right problem.</p>
+  </div>
+</header>
+
+<nav class="nav">
+  <div class="nav-inner">
+    <a href="#part0">Part 0 · Confusion Matrix</a>
+    <a href="#part1">Part 1 · Type I / II</a>
+    <a href="#part2">Part 2 · Accuracy</a>
+    <a href="#part3">Part 3 · Precision</a>
+    <a href="#part4">Part 4 · Recall</a>
+    <a href="#part5">Part 5 · F1</a>
+    <a href="#part6">Part 6 · Weighted F1</a>
+    <a href="#part7">Part 7 · Decision Framework</a>
+    <a href="#appendix">Appendix</a>
+  </div>
+</nav>
+
+<main class="container">
+  <section class="intro-grid">
+    <div class="card">
+      <div class="eyebrow">Teaching Overview</div>
+      <h2>How to use this tutorial</h2>
+      <p class="lead">This page is organized the way you would teach it in class: start with the confusion matrix, then move metric-by-metric, then end with a decision framework. Every important metric is attached to a concrete dataset so students can see <em>why</em> that metric exists.</p>
+      <div class="callout">
+        <strong>Core principle:</strong> no metric is universally best. The right metric depends on class imbalance and on which mistake costs more in the real world.
+      </div>
+    </div>
+    <div class="card">
+      <div class="eyebrow">At a Glance</div>
+      <div class="quick-list">
+        <div class="quick-item">
+          <strong>Accuracy</strong>
+          <p>Useful when classes are balanced and both error types have similar cost.</p>
+        </div>
+        <div class="quick-item">
+          <strong>Precision</strong>
+          <p>Useful when false positives are costly.</p>
+        </div>
+        <div class="quick-item">
+          <strong>Recall</strong>
+          <p>Useful when false negatives are costly.</p>
+        </div>
+        <div class="quick-item">
+          <strong>F1 / Weighted F1</strong>
+          <p>Useful when classes are imbalanced and you need balanced or class-frequency-aware reporting.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="section" id="part0">
+    <div class="section-header">
+      <div class="section-num">P0</div>
+      <div>
+        <h2>Part 0 — The Confusion Matrix (Foundation)</h2>
+        <div class="section-subtitle">Before any metric makes sense, you need to understand what the model got right and what it got wrong.</div>
+      </div>
+    </div>
+
+    <p>Before any metric makes sense, you need to understand what a model is actually doing when it classifies something. It is comparing its prediction against ground truth (the real answer). Every prediction lands in one of four buckets.</p>
+
+    <h3>The Four Outcomes</h3>
+    <p>Imagine a binary classifier that predicts <strong>Spam</strong> (Positive) or <strong>Not Spam</strong> (Negative).</p>
+
+    <div class="pre-block">                        PREDICTED
+                   Positive    Negative
+           ┌───────────────┬───────────────┐
+Positive   │      TP        │      FN       │
+  ACTUAL   │  True Positive │ False Negative│
+           ├───────────────┼───────────────┤
+Negative   │      FP        │      TN       │
+           │ False Positive │  True Negative│
+           └───────────────┴───────────────┘</div>
+
+    <div class="table-wrap" style="margin-top:16px">
+      <table>
+        <thead>
+          <tr>
+            <th>Cell</th>
+            <th>Full Name</th>
+            <th>What it means</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td>TP</td><td>True Positive</td><td>Model said Positive. It was right.</td></tr>
+          <tr><td>TN</td><td>True Negative</td><td>Model said Negative. It was right.</td></tr>
+          <tr><td>FP</td><td>False Positive</td><td>Model said Positive. It was wrong. (Type I Error)</td></tr>
+          <tr><td>FN</td><td>False Negative</td><td>Model said Negative. It was wrong. (Type II Error)</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>Dataset 0 — Email Spam Filter</h3>
+    <p>A company deploys a spam filter. Over one week, 200 emails arrive: 90 are spam, 110 are legitimate.</p>
+
+    <div class="pre-block">Actual Spam emails:      90
+Actual Legit emails:    110
+Total:                  200</div>
+
+    <p>The model produces this confusion matrix:</p>
+
+    <div class="pre-block">                        PREDICTED
+                   Spam        Not Spam
+           ┌───────────────┬───────────────┐
+    Spam   │    TP = 78     │    FN = 12    │   (90 actual spam)
+  ACTUAL   │               │               │
+           ├───────────────┼───────────────┤
+  Not Spam │    FP = 6      │    TN = 104   │   (110 actual legit)
+           └───────────────┴───────────────┘
+                (84 predicted spam)    (116 predicted not spam)</div>
+
+    <p>Reading this:</p>
+    <ul>
+      <li><strong>78 spam emails</strong> were correctly caught (TP)</li>
+      <li><strong>12 spam emails</strong> slipped through to the inbox (FN) — missed</li>
+      <li><strong>6 legitimate emails</strong> were wrongly sent to spam (FP) — collateral damage</li>
+      <li><strong>104 legitimate emails</strong> correctly reached the inbox (TN)</li>
+    </ul>
+
+    <div class="callout">
+      <strong>Teaching takeaway:</strong> this single matrix is the raw material for every metric below.
+    </div>
+  </section>
+
+  <div class="divider"></div>
+
+  <section class="section" id="part1">
+    <div class="section-header">
+      <div class="section-num">P1</div>
+      <div>
+        <h2>Part 1 — Type I and Type II Errors</h2>
+        <div class="section-subtitle">False alarms versus missed detections.</div>
+      </div>
+    </div>
+
+    <p>These come from statistics, but they are fundamental to understanding what can go wrong with a classifier.</p>
+
+    <h3>The Statistical Frame</h3>
+    <p>In hypothesis testing, you start with a <strong>null hypothesis (H₀)</strong>. In classification, the null hypothesis is always: <em>"This instance is Negative."</em></p>
+
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Error Type</th>
+            <th>Also Called</th>
+            <th>What happened</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td><strong>Type I</strong></td><td>False Positive</td><td>You rejected H₀ when H₀ was true. You said positive, but the truth was negative.</td></tr>
+          <tr><td><strong>Type II</strong></td><td>False Negative</td><td>You failed to reject H₀ when H₀ was false. You said negative, but the truth was positive.</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <p>A simple way to remember:</p>
+    <ul>
+      <li><strong>Type I</strong> → False Alarm</li>
+      <li><strong>Type II</strong> → Missed Detection</li>
+    </ul>
+
+    <h3>Dataset 1A — COVID Screening Test</h3>
+    <p>A rapid COVID test is evaluated on 2,000 patients. 200 actually have COVID; 1,800 are healthy.</p>
+
+    <div class="pre-block">H₀ = "Patient does NOT have COVID" (they are healthy)</div>
+
+    <div class="pre-block">                        TEST RESULT
+                   Positive    Negative
+           ┌───────────────┬───────────────┐
+  COVID    │    TP = 181    │    FN = 19    │   200 actual cases
+  ACTUAL   │               │               │
+           ├───────────────┼───────────────┤
+  Healthy  │    FP = 54     │   TN = 1746   │   1800 healthy
+           └───────────────┴───────────────┘</div>
+
+    <p><strong>Type I Errors (FP = 54):</strong> 54 healthy people tested positive. They experienced unnecessary anxiety, isolation, and follow-up PCR tests. Cost: psychological distress and economic disruption.</p>
+    <p><strong>Type II Errors (FN = 19):</strong> 19 infected people tested negative. They were not isolated and may have unknowingly spread the virus. Cost: potential outbreak.</p>
+
+    <h3>Dataset 1B — Airport Security Screening</h3>
+    <p>Now consider airport security. A scanner flags passengers as either "clear" or "threat-detected."</p>
+
+    <div class="pre-block">H₀ = "Passenger is NOT carrying a weapon"</div>
+
+    <div class="pre-block">                        SCANNER RESULT
+                   Flag        Clear
+           ┌───────────────┬───────────────┐
+  Threat   │    TP = 8      │    FN = 2     │   10 actual threats
+  ACTUAL   │               │               │
+           ├───────────────┼───────────────┤
+  Clear    │   FP = 950     │  TN = 99040   │   99990 safe passengers
+           └───────────────┴───────────────┘</div>
+
+    <p><strong>Type I Errors (FP = 950):</strong> Nearly 1,000 innocent passengers are flagged and delayed. Operationally costly and creates poor experience, but not catastrophic.</p>
+    <p><strong>Type II Errors (FN = 2):</strong> 2 actual threats pass through undetected. Potentially catastrophic.</p>
+
+    <h3>The Core Trade-off</h3>
+    <p>These two scenarios reveal something critical: <strong>the cost of Type I vs Type II errors depends entirely on the domain.</strong></p>
+
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Domain</th>
+            <th>Worse Error</th>
+            <th>Why</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td>Cancer detection</td><td>Type II (FN)</td><td>Missing cancer means no treatment, patient may die</td></tr>
+          <tr><td>Spam filter</td><td>Type I (FP)</td><td>Losing a legitimate email is worse than getting spam</td></tr>
+          <tr><td>Loan approval</td><td>Type I (FP)</td><td>Approving a bad borrower costs money</td></tr>
+          <tr><td>Airport security</td><td>Type II (FN)</td><td>Missing a weapon can be catastrophic</td></tr>
+          <tr><td>Drug trial</td><td>Type I (FP)</td><td>Approving ineffective drug wastes resources and harms</td></tr>
+          <tr><td>Fraud detection</td><td>Type II (FN)</td><td>Missed fraud means financial loss</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <p>There is always a trade-off. Reducing one type of error generally increases the other. This is why no single metric tells the full story.</p>
+  </section>
+
+  <div class="divider"></div>
+
+  <section class="section" id="part2">
+    <div class="section-header">
+      <div class="section-num">P2</div>
+      <div>
+        <h2>Part 2 — Accuracy</h2>
+        <div class="section-subtitle">Useful when the setup is balanced. Dangerous when it is not.</div>
+      </div>
+    </div>
+
+    <h3>The Formula</h3>
+    <div class="formula">Accuracy = (TP + TN) / (TP + FP + FN + TN)
+= Correct predictions / All predictions</div>
+    <p>Accuracy answers: <strong>"What fraction of all my predictions were correct?"</strong></p>
+
+    <h3>Dataset 2A — When Accuracy Works: Balanced Sentiment Classifier</h3>
+    <p>A product review classifier labels reviews as Positive or Negative. The dataset is intentionally balanced.</p>
+
+    <div class="pre-block">Total reviews:         1,000
+Actual Positive:         500
+Actual Negative:         500</div>
+
+    <div class="pre-block">                        PREDICTED
+                  Positive    Negative
+           ┌───────────────┬───────────────┐
+Positive   │   TP = 455    │    FN = 45    │
+  ACTUAL   │               │               │
+           ├───────────────┼───────────────┤
+Negative   │    FP = 38    │   TN = 462    │
+           └───────────────┴───────────────┘</div>
+
+    <div class="formula">Accuracy = (455 + 462) / 1000 = 917 / 1000 = 91.7%</div>
+
+    <p>This is a fair, meaningful number. The classes are balanced. If the model is wrong, it is equally wrong on both classes. Accuracy is a perfectly reasonable metric here.</p>
+
+    <h3>Dataset 2B — When Accuracy Lies: Rare Disease Screening</h3>
+    <p>A hospital screens 10,000 patients for a rare disease. The disease affects 1% of the population.</p>
+
+    <div class="pre-block">Total patients:        10,000
+Actual positive:          100   (1%)
+Actual negative:        9,900   (99%)</div>
+
+    <p><strong>Model A — A lazy model that predicts "Healthy" for everyone:</strong></p>
+
+    <div class="pre-block">                        PREDICTED
+                  Disease     Healthy
+           ┌───────────────┬───────────────┐
+  Disease  │    TP = 0      │   FN = 100    │
+  ACTUAL   │               │               │
+           ├───────────────┼───────────────┤
+  Healthy  │    FP = 0      │  TN = 9,900   │
+           └───────────────┴───────────────┘</div>
+
+    <div class="formula">Accuracy = (0 + 9900) / 10000 = 99.0%</div>
+
+    <p><strong>99% accuracy. But the model never detected a single case of the disease.</strong> It is completely useless for its purpose. Every sick patient was sent home undiagnosed.</p>
+
+    <p><strong>Model B — A real, trained classifier:</strong></p>
+
+    <div class="pre-block">                        PREDICTED
+                  Disease     Healthy
+           ┌───────────────┬───────────────┐
+  Disease  │   TP = 91     │    FN = 9     │
+  ACTUAL   │               │               │
+           ├───────────────┼───────────────┤
+  Healthy  │   FP = 120    │  TN = 9,780   │
+           └───────────────┴───────────────┘</div>
+
+    <div class="formula">Accuracy = (91 + 9780) / 10000 = 9871 / 10000 = 98.7%</div>
+
+    <p>Model B has <em>lower</em> accuracy (98.7%) than the lazy model (99%), yet it correctly detected 91 out of 100 sick patients and is vastly more useful.</p>
+
+    <h3>The Lesson from Accuracy</h3>
+    <ul>
+      <li><strong>Useful</strong> when classes are approximately balanced</li>
+      <li><strong>Misleading</strong> when there is class imbalance</li>
+      <li><strong>Never sufficient alone</strong> in medical, fraud, or safety applications</li>
+    </ul>
+
+    <div class="callout warning">
+      When you see a model with 99% accuracy and the positive class is rare, ask: <strong>"What would happen if this model predicted the majority class for everything?"</strong>
+    </div>
+  </section>
+
+  <div class="divider"></div>
+
+  <section class="section" id="part3">
+    <div class="section-header">
+      <div class="section-num">P3</div>
+      <div>
+        <h2>Part 3 — Precision</h2>
+        <div class="section-subtitle">When you raise the alarm, how often are you right?</div>
+      </div>
+    </div>
+
+    <h3>The Formula</h3>
+    <div class="formula">Precision = TP / (TP + FP)</div>
+    <p>Precision answers: <strong>"Of all the times I predicted Positive, how often was I actually right?"</strong></p>
+    <p>It only cares about the <strong>positive predictions the model made</strong>. FN and TN do not appear in the formula. They are irrelevant to this question.</p>
+
+    <h3>Dataset 3 — Content Recommendation (Reducing False Alarms)</h3>
+    <p>A streaming platform builds a recommendation engine to surface "movies the user will love" (Positive) vs "movies the user will not like" (Negative). Over 500 recommendation slots, here is what 100 users reported.</p>
+
+    <p>The company cares about precision because <strong>showing a bad recommendation wastes screen real estate and erodes user trust</strong>. They can afford to miss some good movies — there are hundreds more — but they cannot afford to constantly show movies the user dislikes.</p>
+
+    <p><strong>Model A — Aggressive (low threshold, recommends broadly):</strong></p>
+    <div class="pre-block">                        PREDICTED
+                  Loved        Not Loved
+           ┌───────────────┬───────────────┐
+  Loved    │   TP = 210    │    FN = 140   │
+  ACTUAL   │               │               │
+           ├───────────────┼───────────────┤
+  Not Loved│   FP = 160    │   TN = -      │
+           └───────────────┴───────────────┘
+
+Precision = 210 / (210 + 160) = 210 / 370 = 56.8%</div>
+
+    <p>Barely better than random. Nearly half of all recommendations are movies the user dislikes.</p>
+
+    <p><strong>Model B — Conservative (high threshold, only recommends confident picks):</strong></p>
+    <div class="pre-block">                        PREDICTED
+                  Loved        Not Loved
+           ┌───────────────┬───────────────┐
+  Loved    │   TP = 175    │    FN = 175   │
+  ACTUAL   │               │               │
+           ├───────────────┼───────────────┤
+  Not Loved│   FP = 25     │   TN = -      │
+           └───────────────┴───────────────┘
+
+Precision = 175 / (175 + 25) = 175 / 200 = 87.5%</div>
+
+    <p>Model B misses many movies the user would have loved (high FN), but nearly every recommendation it makes is a good one. For this use case, that is the right trade-off.</p>
+
+    <h3>Dataset 3B — Legal Document Review</h3>
+    <p>A law firm uses a classifier to flag documents as "Relevant to case" or "Not relevant." Attorneys manually review every flagged document, which costs $400/hour. There are 50,000 documents.</p>
+
+    <div class="pre-block">Actual relevant:         800   (1.6%)
+Actual not relevant:  49,200   (98.4%)</div>
+
+    <div class="pre-block">                        PREDICTED
+                  Relevant    Not Relevant
+           ┌───────────────┬───────────────┐
+Relevant   │   TP = 760    │    FN = 40    │
+  ACTUAL   │               │               │
+           ├───────────────┼───────────────┤
+Not Relev. │  FP = 3,800   │  TN = 45,400  │
+           └───────────────┴───────────────┘
+
+Precision = 760 / (760 + 3800) = 760 / 4560 = 16.7%</div>
+
+    <p>The attorneys must review 4,560 documents to find 760 relevant ones. Low precision = high wasted effort. Here, improving precision directly reduces cost.</p>
+
+    <h3>The Lesson from Precision</h3>
+    <p>Precision is the right metric when:</p>
+    <ul>
+      <li><strong>False positives are costly</strong> (wasted money, resources, trust)</li>
+      <li>You can afford to miss some positives</li>
+      <li>The downstream action triggered by a positive prediction is expensive or disruptive</li>
+    </ul>
+
+    <div class="callout warning">
+      Precision ignores false negatives entirely — which means a model can achieve perfect precision by only making one prediction and being very confident about it. Always pair it with recall.
+    </div>
+  </section>
+
+  <div class="divider"></div>
+
+  <section class="section" id="part4">
+    <div class="section-header">
+      <div class="section-num">P4</div>
+      <div>
+        <h2>Part 4 — Recall (Sensitivity)</h2>
+        <div class="section-subtitle">Of all the true positives that exist, how many did you find?</div>
+      </div>
+    </div>
+
+    <h3>The Formula</h3>
+    <div class="formula">Recall = TP / (TP + FN)</div>
+    <p>Recall answers: <strong>"Of all the actual Positives in the dataset, how many did I find?"</strong></p>
+    <p>It only cares about the <strong>actual positive class</strong>. FP and TN do not appear in the formula. They are irrelevant to this question.</p>
+    <p>Also called <strong>Sensitivity</strong> or <strong>True Positive Rate</strong>.</p>
+
+    <h3>Dataset 4A — Cancer Tumor Detection</h3>
+    <p>A radiologist's assistant model scans mammograms and flags potential malignant tumors. Oncologists review all flagged cases. The dataset covers 1,000 scans: 100 are malignant, 900 are benign.</p>
+
+    <p>Missing a malignant tumor (FN) means the patient receives no treatment. The cancer progresses. The cost of a false negative is potentially a human life.</p>
+    <p>A false positive means the patient gets called back for a follow-up biopsy — stressful and inconvenient, but not dangerous.</p>
+
+    <p><strong>Model A — Cautious (high precision, low recall):</strong></p>
+    <div class="pre-block">                        PREDICTED
+                  Malignant   Benign
+           ┌───────────────┬───────────────┐
+Malignant  │   TP = 60     │    FN = 40    │
+  ACTUAL   │               │               │
+           ├───────────────┼───────────────┤
+  Benign   │   FP = 4      │   TN = 896    │
+           └───────────────┴───────────────┘
+
+Precision = 60 / 64  = 93.8%
+Recall    = 60 / 100 = 60.0%</div>
+
+    <p>Model A is very precise — when it flags something, it is almost always right. But it misses 40 malignant cases. Those 40 patients walk away with cancer undetected.</p>
+
+    <p><strong>Model B — Sensitive (high recall, lower precision):</strong></p>
+    <div class="pre-block">                        PREDICTED
+                  Malignant   Benign
+           ┌───────────────┬───────────────┐
+Malignant  │   TP = 97     │    FN = 3     │
+  ACTUAL   │               │               │
+           ├───────────────┼───────────────┤
+  Benign   │   FP = 148    │   TN = 752    │
+           └───────────────┴───────────────┘
+
+Precision = 97 / 245  = 39.6%
+Recall    = 97 / 100  = 97.0%</div>
+
+    <p>Model B catches 97 out of 100 malignant tumors. But it also flags 148 benign cases, sending those patients through unnecessary biopsies. The 3 missed cases are tragedies, but the 97 caught cases are lives saved.</p>
+
+    <p><strong>For cancer detection, Model B is the clinically correct choice.</strong> High recall is mandatory. The false positive burden (biopsies) is acceptable because the false negative cost (untreated cancer) is unacceptable.</p>
+
+    <h3>Dataset 4B — Flight Safety Alert System</h3>
+    <p>An automated system monitors 500 flights for mechanical anomalies. There are 20 real faults. Every undetected fault risks catastrophic failure.</p>
+
+    <div class="pre-block">                        PREDICTED
+                  Fault       No Fault
+           ┌───────────────┬───────────────┐
+  Fault    │   TP = 20     │    FN = 0     │
+  ACTUAL   │               │               │
+           ├───────────────┼───────────────┤
+  No Fault │   FP = 85     │   TN = 395    │
+           └───────────────┴───────────────┘
+
+Recall    = 20 / 20  = 100%
+Precision = 20 / 105 = 19.0%</div>
+
+    <p>100% recall. Not a single fault missed. 85 false alarms trigger unnecessary ground checks — costly, but every plane is safe. In aviation, perfect recall is the design goal.</p>
+
+    <h3>The Lesson from Recall</h3>
+    <p>Recall is the right metric when:</p>
+    <ul>
+      <li><strong>False negatives are catastrophic</strong> (missed diagnoses, undetected faults, missed fraud)</li>
+      <li>You can tolerate false alarms</li>
+      <li>The cost of missing a positive instance is much higher than investigating a false positive</li>
+    </ul>
+
+    <div class="callout danger">
+      Recall ignores false positives entirely — which means a model can achieve perfect recall by predicting Positive for everything. Always pair it with precision.
+    </div>
+  </section>
+
+  <div class="divider"></div>
+
+  <section class="section" id="part5">
+    <div class="section-header">
+      <div class="section-num">P5</div>
+      <div>
+        <h2>Part 5 — F1 Score</h2>
+        <div class="section-subtitle">When you need precision and recall to be good at the same time.</div>
+      </div>
+    </div>
+
+    <h3>The Problem with Precision and Recall Alone</h3>
+    <p>Given what we know:</p>
+    <ul>
+      <li>A model that predicts Positive for everything achieves <strong>Recall = 100%</strong> but Precision collapses</li>
+      <li>A model that only makes one very confident Positive prediction achieves <strong>Precision = 100%</strong> but Recall collapses</li>
+    </ul>
+    <p>We need a single number that balances both. That is the F1 Score.</p>
+
+    <h3>The Formula</h3>
+    <div class="formula">F1 = 2 × (Precision × Recall) / (Precision + Recall)
+= 2TP / (2TP + FP + FN)</div>
+
+    <p>The F1 Score is the <strong>harmonic mean</strong> of Precision and Recall. The harmonic mean punishes extreme imbalance between the two numbers far more severely than the arithmetic mean would.</p>
+
+    <div class="pre-block">Example: Precision = 90%, Recall = 10%
+
+Arithmetic mean = (0.90 + 0.10) / 2 = 50%   ← looks decent
+Harmonic mean   = 2(0.90)(0.10) / (0.90 + 0.10) = 18%  ← reflects the problem</div>
+
+    <p>The harmonic mean forces both values to be high for F1 to be high.</p>
+
+    <h3>Dataset 5 — Online Fraud Detection</h3>
+    <p>A payment platform processes 100,000 transactions per day. 400 are fraudulent (0.4%). Three candidate models are evaluated.</p>
+
+    <div class="pre-block">Total transactions:   100,000
+Actual fraud:             400
+Actual legitimate:     99,600</div>
+
+    <p><strong>Model A — The Precision Chaser:</strong><br>Very conservative. Only flags near-certain fraud.</p>
+    <div class="pre-block">                        PREDICTED
+                  Fraud       Legit
+           ┌───────────────┬───────────────┐
+  Fraud    │   TP = 280    │   FN = 120    │
+  ACTUAL   │               │               │
+           ├───────────────┼───────────────┤
+  Legit    │   FP = 14     │  TN = 99,586  │
+           └───────────────┴───────────────┘
+
+Precision = 280 / 294   = 95.2%
+Recall    = 280 / 400   = 70.0%
+F1        = 2(0.952)(0.70) / (0.952 + 0.70) = 80.7%</div>
+
+    <p>Very few legitimate transactions blocked. But 120 fraudulent transactions ($60,000 assuming $500 avg) go through daily.</p>
+
+    <p><strong>Model B — The Recall Chaser:</strong><br>Flags anything suspicious.</p>
+    <div class="pre-block">                        PREDICTED
+                  Fraud       Legit
+           ┌───────────────┬───────────────┐
+  Fraud    │   TP = 384    │   FN = 16     │
+  ACTUAL   │               │               │
+           ├───────────────┼───────────────┤
+  Legit    │  FP = 2,400   │  TN = 97,200  │
+           └───────────────┴───────────────┘
+
+Precision = 384 / 2784  = 13.8%
+Recall    = 384 / 400   = 96.0%
+F1        = 2(0.138)(0.96) / (0.138 + 0.96) = 24.0%</div>
+
+    <p>Catches almost all fraud. But 2,400 legitimate customers have their transactions blocked daily. The customer service fallout alone would be ruinous. F1 = 24% correctly reflects this disaster.</p>
+
+    <p><strong>Model C — Balanced:</strong><br>Optimized for F1.</p>
+    <div class="pre-block">                        PREDICTED
+                  Fraud       Legit
+           ┌───────────────┬───────────────┐
+  Fraud    │   TP = 348    │   FN = 52     │
+  ACTUAL   │               │               │
+           ├───────────────┼───────────────┤
+  Legit    │   FP = 120    │  TN = 99,480  │
+           └───────────────┴───────────────┘
+
+Precision = 348 / 468   = 74.4%
+Recall    = 348 / 400   = 87.0%
+F1        = 2(0.744)(0.87) / (0.744 + 0.87) = 80.1%</div>
+
+    <h3>Side-by-side comparison</h3>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Model</th>
+            <th>Precision</th>
+            <th>Recall</th>
+            <th>F1</th>
+            <th>Fraud missed/day</th>
+            <th>Legit blocked/day</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td>Model A</td><td>95.2%</td><td>70.0%</td><td>80.7%</td><td>120</td><td>14</td></tr>
+          <tr><td>Model B</td><td>13.8%</td><td>96.0%</td><td>24.0%</td><td>16</td><td>2,400</td></tr>
+          <tr><td>Model C</td><td>74.4%</td><td>87.0%</td><td>80.1%</td><td>52</td><td>120</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <p>Model A and C have similar F1 scores (80.7% vs 80.1%), but Model A has much better precision while C has better recall. The business decision about which to deploy depends on what costs more: fraud losses or customer churn from blocked legitimate transactions. The F1 score narrows the choice but does not eliminate business judgment.</p>
+
+    <h3>The Lesson from F1</h3>
+    <p>F1 is the right metric when:</p>
+    <ul>
+      <li>Both precision and recall matter and you want a single number</li>
+      <li>Classes are imbalanced (more reliable than accuracy)</li>
+      <li>You need to compare multiple models quickly</li>
+    </ul>
+
+    <p>F1 treats precision and recall as equally important. If your use case values one more than the other, consider the <strong>Fβ score</strong>:</p>
+    <div class="formula">Fβ = (1 + β²) × (Precision × Recall) / (β² × Precision + Recall)</div>
+    <p>When β &gt; 1, recall is weighted more heavily (e.g., F2 for medical). When β &lt; 1, precision is weighted more heavily (e.g., F0.5 for spam filters where false positives are expensive).</p>
+  </section>
+
+  <div class="divider"></div>
+
+  <section class="section" id="part6">
+    <div class="section-header">
+      <div class="section-num">P6</div>
+      <div>
+        <h2>Part 6 — Weighted F1</h2>
+        <div class="section-subtitle">What to do when the task is multi-class and class sizes are uneven.</div>
+      </div>
+    </div>
+
+    <h3>The Problem: Multi-class Imbalance</h3>
+    <p>All the metrics above assumed binary classification. Real problems often have three or more classes — and those classes are rarely equally sized. A simple macro-average F1 (the unweighted average of per-class F1 scores) treats a class with 5 samples identically to a class with 5,000 samples.</p>
+    <p>Weighted F1 corrects for this by weighting each class's F1 score by its <strong>support</strong> — the number of actual instances of that class in the dataset.</p>
+
+    <h3>Formula</h3>
+    <p>For each class <em>i</em>:</p>
+    <div class="formula">F1ᵢ = 2 × Precisionᵢ × Recallᵢ / (Precisionᵢ + Recallᵢ)</div>
+    <p>Then:</p>
+    <div class="formula">Weighted F1 = Σ (support_i / total_samples) × F1_i
+= (support_1 × F1_1 + support_2 × F1_2 + ... + support_k × F1_k) / total_samples</div>
+
+    <h3>Dataset 6 — Customer Support Ticket Classifier</h3>
+    <p>A SaaS company auto-classifies incoming support tickets into three categories:</p>
+    <ul>
+      <li><strong>Billing</strong> — subscription, invoices, payments</li>
+      <li><strong>Technical</strong> — bugs, downtime, integration issues</li>
+      <li><strong>General</strong> — onboarding, feature requests, feedback</li>
+    </ul>
+    <p>The distribution is heavily imbalanced because most customers hit technical issues.</p>
+
+    <div class="pre-block">Class        | Support (actual count)
+-------------|------------------------
+Billing      |    180 tickets  (18%)
+Technical    |    650 tickets  (65%)
+General      |    170 tickets  (17%)
+-------------|------------------------
+Total        |  1,000 tickets</div>
+
+    <p>The model produces these per-class confusion results (derived from the full 3×3 confusion matrix):</p>
+    <div class="pre-block">Per-class confusion matrix (simplified):
+
+          Predicted Billing  Predicted Technical  Predicted General
+Billing        148                  20                  12
+Technical        8                 618                  24
+General         15                  28                 127</div>
+
+    <h4>Step 1: Compute per-class metrics</h4>
+
+    <p><strong>Billing (class 0):</strong></p>
+    <div class="pre-block">TP_billing  = 148
+FP_billing  = 8 + 15 = 23   (other classes predicted as Billing)
+FN_billing  = 20 + 12 = 32  (Billing predicted as something else)
+
+Precision_billing = 148 / (148 + 23) = 148 / 171 = 86.5%
+Recall_billing    = 148 / (148 + 32) = 148 / 180 = 82.2%
+F1_billing        = 2(0.865)(0.822) / (0.865 + 0.822) = 84.3%
+Support_billing   = 180</div>
+
+    <p><strong>Technical (class 1):</strong></p>
+    <div class="pre-block">TP_tech  = 618
+FP_tech  = 20 + 28 = 48   (other classes predicted as Technical)
+FN_tech  = 8 + 24 = 32    (Technical predicted as something else)
+
+Precision_tech = 618 / (618 + 48) = 618 / 666 = 92.8%
+Recall_tech    = 618 / (618 + 32) = 618 / 650 = 95.1%
+F1_tech        = 2(0.928)(0.951) / (0.928 + 0.951) = 93.9%
+Support_tech   = 650</div>
+
+    <p><strong>General (class 2):</strong></p>
+    <div class="pre-block">TP_general  = 127
+FP_general  = 12 + 24 = 36   (other classes predicted as General)
+FN_general  = 15 + 28 = 43   (General predicted as something else)
+
+Precision_general = 127 / (127 + 36) = 127 / 163 = 77.9%
+Recall_general    = 127 / (127 + 43) = 127 / 170 = 74.7%
+F1_general        = 2(0.779)(0.747) / (0.779 + 0.747) = 76.3%
+Support_general   = 170</div>
+
+    <h4>Step 2: Summary table</h4>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Class</th>
+            <th>Precision</th>
+            <th>Recall</th>
+            <th>F1</th>
+            <th>Support</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td>Billing</td><td>86.5%</td><td>82.2%</td><td>84.3%</td><td>180</td></tr>
+          <tr><td>Technical</td><td>92.8%</td><td>95.1%</td><td>93.9%</td><td>650</td></tr>
+          <tr><td>General</td><td>77.9%</td><td>74.7%</td><td>76.3%</td><td>170</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h4>Step 3: Compute macro F1 (unweighted)</h4>
+    <div class="formula">Macro F1 = (84.3 + 93.9 + 76.3) / 3 = 254.5 / 3 = 84.8%</div>
+    <p>Macro F1 treats all classes equally, regardless of how many samples each has.</p>
+
+    <h4>Step 4: Compute weighted F1</h4>
+    <div class="formula">Weighted F1 = (180 × 84.3 + 650 × 93.9 + 170 × 76.3) / 1000
+= (15,174 + 61,035 + 12,971) / 1000
+= 89,180 / 1000
+= 89.2%</div>
+
+    <h4>Step 5: Understanding the difference</h4>
+    <div class="pre-block">Macro F1    = 84.8%  ← Treats all classes equally
+Weighted F1 = 89.2%  ← Dominated by the Technical class (65% of data)</div>
+
+    <p>Weighted F1 is higher because the Technical class — which has the highest F1 (93.9%) — is also the largest class (65% of data). It dominates the weighted average.</p>
+    <p><strong>This is important:</strong> if the model performs poorly on smaller classes (Billing, General), the weighted F1 will not punish it very harshly because those classes contribute less weight. Macro F1 would expose this more clearly.</p>
+
+    <h3>Choosing Between Macro and Weighted F1</h3>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Metric</th>
+            <th>Use when</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td>Macro F1</td><td>Every class is equally important regardless of size. (e.g., rare disease detection where the rare class matters as much as the common one)</td></tr>
+          <tr><td>Weighted F1</td><td>Performance on larger classes matters more. (e.g., routing system where most tickets are of one type and accuracy on that type drives user satisfaction)</td></tr>
+          <tr><td>Micro F1</td><td>Global TP/FP/FN counts matter. Equivalent to accuracy when classes are mutually exclusive. Dominated by large classes even more than Weighted F1.</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>What Happens in Extreme Imbalance</h3>
+    <p>Consider this adversarial dataset for the same problem:</p>
+    <div class="pre-block">Class       | Support
+------------|--------
+Class A     |    950  (95%)
+Class B     |     30  (3%)
+Class C     |     20  (2%)</div>
+
+    <p>A model that achieves F1 = 95% on Class A, 0% on Class B, and 0% on Class C would produce:</p>
+    <div class="pre-block">Macro F1    = (95 + 0 + 0) / 3 = 31.7%   ← Correctly signals failure
+Weighted F1 = (950×0.95 + 30×0 + 20×0) / 1000 = 90.25%  ← Dangerously misleading</div>
+
+    <p>Weighted F1 of 90% would suggest the model is working well. Macro F1 of 32% immediately reveals the model is completely failing on two out of three classes. <strong>When minority classes matter, always report Macro F1 alongside Weighted F1.</strong></p>
+  </section>
+
+  <div class="divider"></div>
+
+  <section class="section" id="part7">
+    <div class="section-header">
+      <div class="section-num">P7</div>
+      <div>
+        <h2>Part 7 — Putting It All Together</h2>
+        <div class="section-subtitle">A practical decision framework for metric selection.</div>
+      </div>
+    </div>
+
+    <h3>Decision Framework: Which Metric to Use?</h3>
+    <div class="pre-block">Is the task binary or multi-class?
+│
+├── Multi-class
+│   ├── Are all classes equally important? → Macro F1
+│   ├── Do larger classes dominate importance? → Weighted F1
+│   └── Is dataset highly imbalanced? → Report both + per-class breakdown
+│
+└── Binary
+    ├── Are classes balanced?
+    │   └── Yes → Accuracy is fine. Add F1 for completeness.
+    │
+    └── Classes imbalanced?
+        ├── FN is catastrophic (cancer, fraud, safety) → Recall first, F1 second
+        ├── FP is costly (spam, recommendations, legal review) → Precision first, F1 second
+        └── Both matter roughly equally → F1 Score</div>
+
+    <h3>The Complete Metrics Summary</h3>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Metric</th>
+            <th>Formula</th>
+            <th>What it asks</th>
+            <th>Blind spot</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td>Accuracy</td><td>(TP+TN) / Total</td><td>How often am I right overall?</td><td>Fails on imbalanced data</td></tr>
+          <tr><td>Precision</td><td>TP / (TP+FP)</td><td>When I say positive, how sure am I?</td><td>Ignores false negatives</td></tr>
+          <tr><td>Recall</td><td>TP / (TP+FN)</td><td>Of all positives, how many did I find?</td><td>Ignores false positives</td></tr>
+          <tr><td>F1</td><td>2·P·R / (P+R)</td><td>Balance of precision and recall</td><td>Ignores true negatives; treats P=R</td></tr>
+          <tr><td>Weighted F1</td><td>Σ (support_i/total) · F1_i</td><td>F1 weighted by class frequency</td><td>Dominated by majority class</td></tr>
+          <tr><td>Macro F1</td><td>mean of per-class F1</td><td>F1 treating all classes equally</td><td>Ignores class imbalance</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>Dataset 7 — Final Challenge: Choose the Right Metric</h3>
+    <p>A financial institution builds three models for three different tasks using the same underlying technology. Same data pipeline, different objectives.</p>
+
+    <h4>Task A — Mortgage Default Prediction (25,000 applicants, 2% default rate)</h4>
+    <p>Should the bank use Accuracy, Precision, Recall, or F1?</p>
+    <p>The bank's cost of approving someone who defaults: $80,000 average loss. The bank's cost of rejecting someone creditworthy: $3,200 in lost lifetime revenue.</p>
+    <p>Since approving a bad borrower is far more costly than rejecting a good one, the model should be evaluated with a metric that strongly penalizes costly false approvals.</p>
+    <div class="callout warning">
+      <strong>Teaching clarification:</strong> whether that bad approval is called a false positive or a false negative depends on how you define the positive class. If the positive class is <em>"approve"</em>, it is a false positive. If the positive class is <em>"will default"</em>, then missing the defaulter is a false negative. The business lesson stays the same: the high-cost mistake must dominate metric selection.
+    </div>
+    <p>Since the high-cost mistake is much more expensive → <strong>Precision</strong> should be the primary metric if the model's positive class triggers approval, or more generally a metric focused on reducing bad approvals should dominate. Missing some good customers is acceptable. Approving bad borrowers is not.</p>
+
+    <h4>Task B — Anti-Money Laundering Screening (1 million transactions, 0.01% suspicious)</h4>
+    <p>Regulators mandate that suspicious activity reports are filed for flagged transactions. Missing an actual laundering operation (FN) triggers regulatory fines up to $50M. Investigating a false positive costs $200 per case.</p>
+    <p>Since FN cost &gt;&gt; FP cost, and the class is extremely rare → <strong>Recall</strong> as the primary metric, with F1 as secondary. Weighted accuracy would be completely misleading (99.99% by predicting nothing is suspicious).</p>
+
+    <h4>Task C — Transaction Category Classifier (auto-labeling: Food, Transport, Entertainment, Utilities, Healthcare, Other)</h4>
+    <p>Six classes, naturally imbalanced (Utilities = 4%, Healthcare = 3%, Other = 35%, etc.). The goal is to power a personal finance dashboard where users view breakdowns of all spending categories.</p>
+    <p>Here, all categories matter to the user. The Healthcare category has few transactions but high user sensitivity — mislabeling healthcare expenses is particularly frustrating.</p>
+    <p>→ <strong>Macro F1</strong> as primary metric (all classes matter equally), supplemented with per-class F1 to monitor Healthcare and Utilities specifically. Report Weighted F1 as a secondary benchmark for overall system health.</p>
+  </section>
+
+  <div class="divider"></div>
+
+  <section class="section" id="appendix">
+    <div class="section-header">
+      <div class="section-num">Ap</div>
+      <div>
+        <h2>Appendix — Quick Reference</h2>
+        <div class="section-subtitle">All formulas and one-line intuition in one place.</div>
+      </div>
+    </div>
+
+    <h3>All Formulas</h3>
+    <div class="pre-block">Given: TP = True Positive, TN = True Negative, FP = False Positive, FN = False Negative
+
+Accuracy    = (TP + TN) / (TP + TN + FP + FN)
+
+Precision   = TP / (TP + FP)
+
+Recall      = TP / (TP + FN)
+
+F1          = 2 × Precision × Recall / (Precision + Recall)
+            = 2TP / (2TP + FP + FN)
+
+Fβ          = (1 + β²) × Precision × Recall / (β² × Precision + Recall)
+
+Specificity = TN / (TN + FP)           ← True Negative Rate
+FPR         = FP / (FP + TN)           ← False Positive Rate = 1 - Specificity
+FNR         = FN / (FN + TP)           ← Miss Rate = 1 - Recall
+
+For class i in a multi-class problem:
+  Precision_i = TP_i / (TP_i + FP_i)
+  Recall_i    = TP_i / (TP_i + FN_i)
+  F1_i        = 2 × Precision_i × Recall_i / (Precision_i + Recall_i)
+
+Macro F1    = (1/K) × Σ F1_i            where K = number of classes
+Weighted F1 = Σ (support_i / N) × F1_i  where N = total samples
+Micro F1    = 2 × Σ TP_i / (2 × Σ TP_i + Σ FP_i + Σ FN_i)</div>
+
+    <h3>Intuition in One Line Each</h3>
+    <ul>
+      <li><strong>Accuracy</strong>: "How often am I right?"</li>
+      <li><strong>Precision</strong>: "When I raise the alarm, is it real?"</li>
+      <li><strong>Recall</strong>: "Do I catch everything I should?"</li>
+      <li><strong>F1</strong>: "Am I both precise and thorough?"</li>
+      <li><strong>Weighted F1</strong>: "Am I good across all classes, proportional to how common they are?"</li>
+      <li><strong>Type I Error</strong>: "False alarm."</li>
+      <li><strong>Type II Error</strong>: "Missed it."</li>
+    </ul>
+
+    <h3>The Never-Forget Mnemonic</h3>
+    <div class="callout success">
+      <strong>Precision</strong> is about your <strong>predictions</strong> — of the positives <em>you</em> predicted, how many were real?
+      <br><br>
+      <strong>Recall</strong> is about <strong>reality</strong> — of the positives that <em>actually exist</em>, how many did you find?
+    </div>
+  </section>
+</main>
+
+<footer>
+  Classification Metrics Tutorial · Standalone HTML Lesson
+  <br>
+  Built for teaching with datasets, formulas, trade-offs, and exam-ready intuition.
+</footer>
+
+</body>
+</html>
